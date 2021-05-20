@@ -1,27 +1,32 @@
+//
+//  CBFrameworkExternal
+//  ChatbotFrameworkExternal
+//
+//  Created by ha100 on 05/20/2021.
+//  Copyright © 2021 Ceska sporitelna. All rights reserved.
+//
+
+import Combine
+import CSCBTypes
 import Foundation
 import Starscream
 
-final class ChatbotFramework: WebSocketDelegate {
-    
-    // MARK: -- Types
-    
-    public enum CBError: Swift.Error {
-        case invalidUri(url: String)
-    }
-    
+final class CBFrameworkExternal: WebSocketDelegate {
+
     // MARK: -- Properties
     
-    let subject: AnyPublisher<String, Never>
+    let subject: PassthroughSubject<String, Never>
+//    let cancellable: AnyCancellable
     var isConnected = false
     
-    private var socket: WebSocket!
+    private let socket: WebSocket
     private let server = WebSocketServer()
     
     // MARK: -- Init
     
     ///    "http://localhost:8080"
     ///
-    public init(url urlString: String) throws {
+    public convenience init(url urlString: String) throws {
         
         guard let url = URL(string: urlString) else {
             throw CBError.invalidUri(url: urlString)
@@ -33,22 +38,26 @@ final class ChatbotFramework: WebSocketDelegate {
     ///    "http://localhost:8080"
     ///
     public init(url: URL) {
-        
+        print(">>> init")
         subject = PassthroughSubject<String, Never>()
-        
-        let pinner = FoundationSecurity(allowSelfSigned: true)
+//        cancellable = subject
+
+//        let pinner = FoundationSecurity(allowSelfSigned: true)
         
         var request = URLRequest(url: url)
         request.timeoutInterval = 5
-        
-        socket = WebSocket(request: request, certPinner: pinner)
+
+//        socket = WebSocket(request: request, certPinner: pinner)
+        socket = WebSocket(request: request)
         socket.delegate = self
         socket.connect()
     }
     
     
-    deinit() {
+    deinit {
 
+//        cancellable.cancel()
+        
         if isConnected {
             socket.disconnect()
         }
@@ -59,22 +68,32 @@ final class ChatbotFramework: WebSocketDelegate {
     public func ping() {
         socket.write(ping: Data())
     }
-    
-    public func write(text: String) {
-        socket.write(string: text)
-    }
-    
-    public func write(data: Data) {
-        socket.write(data: data)
+
+    public func send(_ msg: CBMessage) {
+
+        switch msg {
+
+            case let .text(text): self.write(text: text)
+
+            case let .data(data): self.write(data: data)
+        }
     }
 
     // MARK: -- Private
     
-    private func set(value: String, forHeaderField named: String) {
-        request.setValue(value, forHTTPHeaderField: named)
+//    private func set(value: String, forHeaderField named: String) {
+//        request.setValue(value, forHTTPHeaderField: named)
+//    }
+
+    private func write(text: String) {
+        socket.write(string: text)
     }
-        
-    private func didReceive(event: WebSocketEvent, client: WebSocket) {
+
+    private func write(data: Data) {
+        socket.write(data: data)
+    }
+
+    func didReceive(event: WebSocketEvent, client: WebSocket) {
         
         switch event {
             
@@ -117,7 +136,7 @@ final class ChatbotFramework: WebSocketDelegate {
                 
                 isConnected = false
                 
-            case .error(let error):
+            case let .error(error):
                 
                 isConnected = false
                 handleError(error)
