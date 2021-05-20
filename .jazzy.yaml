@@ -1,0 +1,30 @@
+module: chatbot
+module_version: 1.0.0
+#swift-build-tool: spm
+xcodebuild_arguments: [-workspace, .swiftpm/xcode/package.xcworkspace,-scheme,Whirlpool,-configuration, Debug,CODE_SIGNING_ALLOWED=NO]
+#build-tool-arguments -Xswiftc,-swift-version,-Xswiftc,5
+author: Ceska Sporitelna a.s.
+readme: README.md
+copyright: 'Copyright © 2021 Ceska Sporitelna. All rights reserved.'
+
+# URLs
+#github_file_prefix: https://github.com/ha100/codencity/blob/master/
+
+# Generation
+#swift_version: 5.1.3
+theme: Docs/themes/default
+output: Docs/generated
+
+clean: true
+skip_undocumented: true
+min_acl: private
+
+documentation: Docs/*.md
+
+# Navigation
+#custom_categories:
+#  - name: Documentation
+#    children:
+#    - ProjectSetup
+#    - Concepts
+#    - Debugging
