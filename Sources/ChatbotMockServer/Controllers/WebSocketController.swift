@@ -10,10 +10,14 @@ enum WebSocketSendOption {
 
 final class WebSocketController {
 
+    // MARK: - Properties
+
     let lock: Lock
     var sockets: [UUID: WebSocket]
     let db: Database
     let logger: Logger
+
+    // MARK: - Init
 
     init(db: Database) {
 
@@ -22,6 +26,8 @@ final class WebSocketController {
         self.db = db
         self.logger = Logger(label: "WebSocketController")
     }
+
+    // MARK: - Lifecycle
 
     func connect(_ ws: WebSocket) {
 
@@ -34,7 +40,8 @@ final class WebSocketController {
         ws.onBinary { [weak self] ws, buffer in
 
             guard let self = self,
-                  let data = buffer.getData(at: buffer.readerIndex, length: buffer.readableBytes) else {
+                  let data = buffer.getData(at: buffer.readerIndex,
+                                            length: buffer.readableBytes) else {
 
                 return
             }
@@ -136,7 +143,8 @@ final class WebSocketController {
 
                 case .newQuestion:
 
-                    let newQuestionData = try decoder.decode(NewQuestionMessage.self, from: data)
+                    let newQuestionData = try decoder.decode(NewQuestionMessage.self,
+                                                             from: data)
                     self.onNewQuestion(ws, sinData.id, newQuestionData)
 
                 default:

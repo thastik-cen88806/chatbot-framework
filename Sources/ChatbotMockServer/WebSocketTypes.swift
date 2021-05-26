@@ -4,7 +4,10 @@ import Foundation
 enum QnAMessageType: String, Codable {
 
     case newQuestion
-    case questionResponse, handshake, questionAnswer
+
+    case questionResponse
+    case handshake
+    case questionAnswer
 }
 
 struct QnAMessageSinData: Codable {

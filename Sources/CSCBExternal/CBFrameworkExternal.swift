@@ -11,11 +11,11 @@ import CSCBTypes
 import Foundation
 import Starscream
 
-final class CBFrameworkExternal: WebSocketDelegate {
+public final class CBFrameworkExternal: WebSocketDelegate {
 
     // MARK: -- Properties
     
-    let subject: PassthroughSubject<String, Never>
+    public let subject: PassthroughSubject<String, Never>
 //    let cancellable: AnyCancellable
     var isConnected = false
     
@@ -38,7 +38,7 @@ final class CBFrameworkExternal: WebSocketDelegate {
     ///    "http://localhost:8080"
     ///
     public init(url: URL) {
-        print(">>> init")
+
         subject = PassthroughSubject<String, Never>()
 //        cancellable = subject
 
@@ -64,7 +64,7 @@ final class CBFrameworkExternal: WebSocketDelegate {
     }
     
     // MARK: -- LifeCycle
-    
+
     public func ping() {
         socket.write(ping: Data())
     }
@@ -93,7 +93,7 @@ final class CBFrameworkExternal: WebSocketDelegate {
         socket.write(data: data)
     }
 
-    func didReceive(event: WebSocketEvent, client: WebSocket) {
+    public func didReceive(event: WebSocketEvent, client: WebSocket) {
         
         switch event {
             

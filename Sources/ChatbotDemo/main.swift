@@ -7,24 +7,35 @@
 //
 
 import Foundation
-import ChatbotFrameworkExternal
-import Darwin
+import CSCBExternal
+import CSCBTypes
 
-print(">>> start")
+/**
+ jwt mock
+let msg2 = JWTToken().jwt
+print(">>> token: \(msg2)")
+ guard let client = try? CBFrameworkExternal(url: "https://webchat.csast.csas.cz/?token=\(msg2)") else {
+ */
 
-setbuf(stdout, nil)
-
-guard let client = CBFrameworkExternal(url: "https://webchat.csast.csas.cz") else {
+guard let client = try? CBFrameworkExternal(url: "wss://webchat.csast.csas.cz") else {
 
     fatalError(">>> failed url")
 }
 
-client.subject.sink { [weak self] msg in
+let cancellable = client.subject.sink { msg in
 
     print(">>> msg: \(msg)")
 }
 
-let msg = CBMessage.text("ahoj")
+/**
+let emsg = TextMessage(recipient: Recipient(id: "deadbeef"), message: Message(text: "deaddead"))
+
+let jsonData = try! JSONEncoder().encode(emsg)
+let jsonString = String(data: jsonData, encoding: .utf8)!
+
+print(">>> json: \(jsonString)")
+ */
+let msg = CBMessage.text("jsonString")
 client.send(msg)
 
 sleep(10)
