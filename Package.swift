@@ -4,6 +4,7 @@ import PackageDescription
 
 let deps: [Package.Dependency] = [
     .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.0"),
+    .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.0-rc"),
@@ -11,9 +12,14 @@ let deps: [Package.Dependency] = [
 ]
 
 let targets: [Target] = [
-    .target(name: "CSCBTypes", dependencies: []),
-    .target(name: "CSCBExternal", dependencies: ["Starscream", "CSCBTypes"]),
+    .target(name: "ChatbotDemo", dependencies: ["CSCBExternal"]),
     .target(name: "CSCB", dependencies: ["CSCBTypes"]),
+    .target(name: "CSCBExternal",
+            dependencies: [
+                "Starscream",
+                "CSCBTypes"
+            ]),
+    .target(name: "CSCBTypes", dependencies: [.product(name: "JWTKit", package: "jwt-kit")]),
     .target(name: "ChatbotMockServer",
             dependencies: [
                 .product(name: "Fluent", package: "fluent"),
@@ -37,10 +43,10 @@ let package = Package(
         .watchOS(.v6)
     ],
     products: [
-        .executable( name: "ChatbotDemo", targets: ["CSCBExternal"]),
+        .executable(name: "ChatbotDemo", targets: ["ChatbotDemo"]),
         .executable(name: "ChatbotMockServer", targets: ["ChatbotMockServer"]),
-        .library(name: "ChatbotFrameworkExternal", targets: ["CSCBExternal"]),
-        .library(name: "ChatbotFramework", targets: ["CSCB"]),
+        .library(name: "CSCBExternal", targets: ["CSCBExternal"]),
+        .library(name: "CSCB", targets: ["CSCB"]),
         .library(name: "CSCBTypes", targets: ["CSCBTypes"]),
     ],
     dependencies: deps,

@@ -17,3 +17,11 @@ public enum CBMessage {
     case text(String)
     case data(Data)
 }
+
+public struct Token: Codable {
+
+    let appId: String
+    let cid: String
+    let sha1: String
+    let t: String
+}

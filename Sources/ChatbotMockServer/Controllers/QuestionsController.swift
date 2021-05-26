@@ -5,8 +5,21 @@ import Leaf
 
 struct QuestionsController: RouteCollection {
 
+    // MARK: - Types
+
+    struct QuestionsContext: Encodable {
+        let questions: [Question]
+    }
+
+    // MARK: - Properties
+
     let wsController: WebSocketController
 
+    // MARK: - Lifecycle
+
+
+    /// Vapor upgrades HTTP connection to websocket and takes care of the handshake
+    ///
     func boot(routes: RoutesBuilder) throws {
 
         routes.webSocket("socket", onUpgrade: self.webSocket)
@@ -16,10 +29,6 @@ struct QuestionsController: RouteCollection {
 
     func webSocket(req: Request, socket: WebSocket) {
         self.wsController.connect(socket)
-    }
-
-    struct QuestionsContext: Encodable {
-        let questions: [Question]
     }
 
     func index(req: Request) throws -> EventLoopFuture<View> {
@@ -32,16 +41,25 @@ struct QuestionsController: RouteCollection {
 
     func answer(req: Request) throws -> EventLoopFuture<Response> {
 
-        guard let questionId = req.parameters.get("questionId"), let questionUid = UUID(questionId) else {
+        guard let questionId = req.parameters.get("questionId"),
+              let questionUid = UUID(questionId) else {
+
             throw Abort(.badRequest)
         }
 
-        return Question.find(questionUid, on: req.db).unwrap(or: Abort(.notFound)).flatMap { question in
+        return Question
+            .find(questionUid, on: req.db)
+            .unwrap(or: Abort(.notFound))
+            .flatMap { question in
+
             question.answered = true
 
             return question.save(on: req.db).flatMapThrowing {
 
-                try self.wsController.send(message: QuestionAnsweredMessage(questionId: question.requireID()), to: .id(question.askedFrom))
+                let msg = QuestionAnsweredMessage(questionId: question.requireID())
+                
+                try self.wsController.send(message: msg,
+                                           to: .id(question.askedFrom))
 
                 return req.redirect(to: "/")
             }
