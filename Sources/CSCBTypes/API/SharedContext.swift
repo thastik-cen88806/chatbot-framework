@@ -10,6 +10,13 @@ import Foundation
 
 public struct SharedContext: Codable {
 
+    // MARK: - Types
+
+    enum CodingKeys: String, CodingKey {
+
+        case webUserAgent
+    }
+
     // MARK: - Properties
 
     let webUserAgent: String

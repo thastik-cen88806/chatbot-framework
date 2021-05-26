@@ -14,6 +14,13 @@ import Foundation
 ///
 public struct AttachmentPayload: Codable {
 
+    // MARK: - Types
+
+    enum CodingKeys: String, CodingKey {
+
+        case url
+    }
+
     // MARK: - Properties
 
     let url: String

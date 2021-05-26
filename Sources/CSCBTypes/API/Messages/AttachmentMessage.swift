@@ -1,5 +1,5 @@
 //
-//  AttachmentEvent
+//  AttachmentMessage
 //  CSCBTypes
 //
 //  Created by ha100 on 05/20/2021.
@@ -8,9 +8,9 @@
 
 import Foundation
 
-/// Attachment Event Message
+/// Template Event Message
 ///
-public struct AttachmentEventMessage: Codable {
+public struct AttachmentMessage: Codable {
 
     // MARK: - Types
 
@@ -21,16 +21,15 @@ public struct AttachmentEventMessage: Codable {
 
     // MARK: - Properties
 
-    let attachment: Recipient
+    let attachment: String
 
     // MARK: - Init
 
-    /// AttachmentEvent
+    /// Template Event Message
     ///
-    /// - Parameters:
-    ///   - attachment: ???
+    /// - Parameter attachment: ???
     ///
-    public init(attachment: Recipient) {
+    public init(attachment: String) {
 
         self.attachment = attachment
     }

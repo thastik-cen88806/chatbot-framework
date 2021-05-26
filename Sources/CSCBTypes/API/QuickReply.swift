@@ -22,10 +22,20 @@ import Foundation
 ///
 public struct QuickReply: Codable {
 
+    // MARK: - Types
+
+    enum CodingKeys: String, CodingKey {
+
+        case contentType
+        case title
+        case payload
+    }
+
     // MARK: - Properties
 
     let contentType: String
     let title: String
+
     let payload: String?
 
     // MARK: - Init
@@ -43,6 +53,7 @@ public struct QuickReply: Codable {
 
         self.contentType = contentType
         self.title = title
+        
         self.payload = payload
     }
 }

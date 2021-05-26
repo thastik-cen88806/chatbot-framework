@@ -1,5 +1,5 @@
 //
-//  TemplateType
+//  GenericType
 //  CSCBTypes
 //
 //  Created by ha100 on 05/20/2021.
@@ -10,9 +10,7 @@ import Foundation
 
 /// Type of template
 ///
-/// UsedIn: - Template Event Message Attachment Payload
-///
-enum TemplateType: String {
+public enum GenericType: String, Codable {
 
     case button
     case generic

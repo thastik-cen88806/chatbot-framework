@@ -16,14 +16,14 @@ public struct JWTToken {
     private static let secret = "9WXvaghg3uXfYsbPw42p"
     private let signers = JWTSigners()
 
-    public let payload: Payload
+    public let payload: JPayload
     public var jwt = ""
 
     // MARK: - Init
 
     public init() {
 
-        payload = Payload(t: "u",
+        payload = JPayload(t: "u",
                           bid: "6fy0SXklVeP",
                           uid: "3Wgs8d111OV0",
                           cid: "e5932cce-0705-4261-9194-3bd482aba287",
@@ -50,9 +50,9 @@ public struct JWTToken {
 
     /// Parses the JWT and verifies its signature
     ///
-    public func verify() throws -> Payload {
+    public func verify() throws -> JPayload {
 
-        return try signers.verify(jwt, as: Payload.self)
+        return try signers.verify(jwt, as: JPayload.self)
     }
 }
 
@@ -90,7 +90,7 @@ struct OriginalPayload: JWTPayload, Equatable {
 //  "iat": 1621844518,
 //  "exp": 1621848118
 //}
-public struct Payload: JWTPayload, Equatable {
+public struct JPayload: JWTPayload, Equatable {
 
     // MARK: - Types
 

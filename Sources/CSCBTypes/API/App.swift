@@ -71,11 +71,11 @@ public struct App: Codable {
 
         self.id = id
         self.webhook = webhook
+
         self.messages = messages
         self.msgPostbacks = msgPostbacks
         self.standby = standby
         self.msgHandovers = msgHandovers
-
         self.typing = typing
         self.readDelivery = readDelivery
         self.standby = standby

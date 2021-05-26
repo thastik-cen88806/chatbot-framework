@@ -1,5 +1,5 @@
 //
-//  AttachmentType
+//  TypingType
 //  CSCBTypes
 //
 //  Created by ha100 on 05/20/2021.
@@ -8,13 +8,9 @@
 
 import Foundation
 
-/// Attachment type
+/// Type of Action
 ///
-/// UsedIn: - Attachment
-///
-enum AttachmentType: String {
+public enum TypingType: String, Codable {
 
-    case image
-    case file
-    case template
+    case typing = "typing_on"
 }

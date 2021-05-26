@@ -14,6 +14,13 @@ import Foundation
 ///
 public struct Recipient: Codable {
 
+    // MARK: - Types
+
+    enum CodingKeys: String, CodingKey {
+
+        case id
+    }
+
     // MARK: - Properties
 
     let id: String

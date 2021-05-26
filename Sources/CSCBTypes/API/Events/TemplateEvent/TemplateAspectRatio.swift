@@ -1,5 +1,5 @@
 //
-//  IMGAspectRatio
+//  TemplateAspectRatio
 //  CSCBTypes
 //
 //  Created by ha100 on 05/20/2021.
@@ -12,7 +12,7 @@ import Foundation
 ///
 /// UsedIn: - Template Event Message Attachment Payload
 ///
-enum IMGAspectRatio: String {
+public enum TemplateAspectRatio: String, Codable {
 
     case square
     case horizontal

@@ -1,5 +1,5 @@
 //
-//  Postback
+//  ChannelPayload
 //  CSCBTypes
 //
 //  Created by ha100 on 05/20/2021.
@@ -8,28 +8,29 @@
 
 import Foundation
 
-public struct Postback: Codable {
+/// Channel Payload Object
+///
+public struct ChannelPayload: Codable {
 
     // MARK: - Types
 
     enum CodingKeys: String, CodingKey {
 
         case payload
-        case appId
     }
 
     // MARK: - Properties
 
     let payload: String
 
-    var appId: String?
-
     // MARK: - Init
 
-    public init(payload: String, appId: String?) {
+    /// Channel Payload Object
+    ///
+    /// - Parameter payload: Developer defined payload
+    ///
+    public init(payload: String) {
 
         self.payload = payload
-
-        self.appId = appId
     }
 }

@@ -25,17 +25,33 @@ import Foundation
 ///
 public struct GenericMessage: Codable {
 
+    // MARK: - Types
+
+    enum CodingKeys: String, CodingKey {
+
+        case text
+        case quickReplies = "quick_replies"
+    }
+
     // MARK: - Properties
 
     let text: String
-    let quick_replies: Array<QuickReply>
+
+    let quickReplies: Array<QuickReply>
 
     // MARK: - Init
 
+    /// Generic Message
+    ///
+    /// - Parameters:
+    ///   - text: <#text description#>
+    ///   - quickReplies: <#quickReplies description#>
+    ///
     public init(text: String,
-                quickReplies: Array<QuickReply> = []) {
+                quickReplies: Array<QuickReply>) {
 
         self.text = text
+        
         self.quick_replies = quickReplies
     }
 }

@@ -12,7 +12,7 @@ import Foundation
 ///
 /// UsedIn: - Template Event Message Attachment Payload
 ///
-enum ButtonType: String {
+public enum ButtonType: String, Codable {
 
     case postback
     case weburl = "web_url"
