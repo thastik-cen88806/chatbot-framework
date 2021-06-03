@@ -12,10 +12,6 @@ import Foundation
 import Starscream
 import Tagged
 
-struct NetworkTimeoutError: Error {
-    let url: URL
-}
-
 public final class CBFrameworkExternal: WebSocketDelegate {
 
     // MARK: -- Properties
@@ -149,16 +145,25 @@ public final class CBFrameworkExternal: WebSocketDelegate {
         var request = URLRequest(url: url)
         request.addValue("https://www.csast.csas.cz", forHTTPHeaderField: "Referer")
 //        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-//        request.addValue("application/xml", forHTTPHeaderField: "Content-Type")
 
         URLSession.shared.dataTask(with: request) { data, response, error in
 
-            guard let data = data,
-                  let html = String(data: data, encoding: .utf8),
-                  let httpResponse = response as? HTTPURLResponse,
+            guard let data = data else {
+
+//                CBError.tokenZeroNoHTMLData
+                return
+            }
+
+            guard let html = String(data: data, encoding: .utf8) else {
+
+//                CBError.tokenZeroHTMLExtract(error: String)
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse,
                   let fields = httpResponse.allHeaderFields as? [String: String] else {
 
-                print(">>> err: \(error?.localizedDescription ?? "NA") resp: \(response)")
+//                CBError.tokenZeroNoCookies(response: response)
                 return
             }
 
@@ -167,18 +172,21 @@ public final class CBFrameworkExternal: WebSocketDelegate {
             let jsonWhiteSpace = "\\s"
             let jsonPattern = "\\{(.*)\\}"
 
-            struct TokenZeroHTMLExtractError: Error {
-                let error: String
-            }
-
-            let token = html
+            let result = html
                 .replacingOccurrences(of: jsonWhiteSpace, with: "", options: .regularExpression)
                 .match(regex: jsonPattern)?
                 .data(using: .utf8)?
-                .decode(to: TokenZero.self) ?? Result.failure(TokenZeroHTMLExtractError(error: html))
+                .decode(to: TokenZero.self)
 
-            self.tokenPublisher.send(try! token.get())
+            switch result {
 
+                case let .success(token): self.tokenPublisher.send(token)
+
+                case let .failure(error): print(">>> sink \(error)")
+
+                case .none:  break //Result.failure(CBError.tokenZeroHTMLExtract(error: html))
+
+            }
         }.resume()
     }
 

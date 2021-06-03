@@ -23,12 +23,6 @@ public struct TemplatePayload: Codable {
         case elements
     }
 
-    enum TemplatePayloadError: Error {
-
-        case textLengthOverflow(String)
-        case arrayElementsOverflow(String)
-    }
-
     // MARK: - Properties
 
     static let buttonArrayError = "there can be up to \(TemplatePayload.maxArrayElements) entries in buttons `Array`"
@@ -68,19 +62,19 @@ public struct TemplatePayload: Codable {
 
         if let chars = text {
             guard chars.count < TemplatePayload.maxTextLength else {
-                throw TemplatePayloadError.textLengthOverflow(TemplatePayload.buttonArrayError)
+                throw CBError.textLengthOverflow(text: TemplatePayload.buttonArrayError)
             }
         }
 
         if let btnz = buttons {
             guard btnz.count < TemplatePayload.maxArrayElements else {
-                throw TemplatePayloadError.arrayElementsOverflow(TemplatePayload.buttonArrayError)
+                throw CBError.arrayElementsOverflow(text: TemplatePayload.buttonArrayError)
             }
         }
 
         if let elms = elements {
             guard elms.count < TemplatePayload.maxArrayElements else {
-                throw TemplatePayloadError.arrayElementsOverflow(TemplatePayload.elementsArrayError)
+                throw CBError.arrayElementsOverflow(text: TemplatePayload.elementsArrayError)
             }
         }
 

@@ -53,10 +53,6 @@ extension TokenZero: CustomStringConvertible {
     }
 }
 
-public struct TokenZeroDecodeError: Error {
-    let error: String
-}
-
 extension Data {
 
     public func decode<T: Codable>(to: T.Type) -> Result<T, Error> {
@@ -68,7 +64,7 @@ extension Data {
 
         } catch {
 
-            let resultError = TokenZeroDecodeError(error: error.localizedDescription)
+            let resultError = CBError.tokenZeroDecode(error: error.localizedDescription)
             return Result.failure(resultError)
         }
     }

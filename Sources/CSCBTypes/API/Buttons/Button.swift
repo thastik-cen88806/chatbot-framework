@@ -22,11 +22,6 @@ public struct Button: Codable {
         case url
     }
 
-    enum ButtonError: Error {
-
-        case textLengthOverflow(String)
-    }
-
     // MARK: - Properties
 
     static let urlLengthError = "there can be up to \(Button.maxStringLength) characters in url"
@@ -60,18 +55,18 @@ public struct Button: Codable {
                 url: URL?) throws {
 
         guard title.count < Button.maxTitleLength else {
-                throw ButtonError.textLengthOverflow(Button.titleLengthError)
+            throw CBError.textLengthOverflow(text: Button.titleLengthError)
         }
 
         if let pld = payload {
             guard pld.count < Button.maxStringLength else {
-                throw ButtonError.textLengthOverflow(Button.payloadLengthError)
+                throw CBError.textLengthOverflow(text: Button.payloadLengthError)
             }
         }
 
         if let uri = url?.absoluteString {
             guard uri.count < Button.maxStringLength else {
-                throw ButtonError.textLengthOverflow(Button.urlLengthError)
+                throw CBError.textLengthOverflow(text: Button.urlLengthError)
             }
         }
 
