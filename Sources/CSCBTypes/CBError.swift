@@ -18,4 +18,5 @@ public enum CBError: Error {
     case tokenZeroHTMLExtract(error: String)
     case tokenZeroNoHTMLData
     case tokenZeroNoCookies(response: URLResponse?)
+    case tokenJWTExpired
 }

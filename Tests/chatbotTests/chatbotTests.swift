@@ -21,11 +21,15 @@
 
         func testExample() {
 
-            let jwt = try? TokenJWT(jwt: sut)
+            do {
 
-            let token = try? decoder.decode(JPayload.self, from: json.data(using: .utf8)!)
+                let jwt = try TokenJWT(jwt: sut)
+                let token = try decoder.decode(JPayload.self, from: json.data(using: .utf8)!)
 
+                XCTAssertEqual(jwt.payload, token, "the payload of the object should be parsed")
+            } catch {
 
-            XCTAssertEqual(jwt!.payload, token!, "the payload of the object should be parsed")
+                print(">>> \(error)")
+            }
         }
     }

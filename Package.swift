@@ -9,10 +9,14 @@ let deps: [Package.Dependency] = [
     .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.0-rc"),
-    .package(url: "https://github.com/vapor/leaf", from: "4.0.0-rc")
+    .package(url: "https://github.com/vapor/leaf", from: "4.0.0-rc"),
+    .package(url: "https://github.com/krzysztofzablocki/Sourcery", from: "1.4.0"),
+    .package(url: "https://github.com/Realm/SwiftLint", from: "0.28.1"),
+    .package(url: "https://github.com/shibapm/Komondor.git", from: "1.0.0")
 ]
 
 let targets: [Target] = [
+//    .target(name: "Sourcery", dependencies: ["Sourcery"]),
     .target(name: "ChatbotDemo", dependencies: ["CSCBExternal"]),
     .target(name: "CSCB", dependencies: ["CSCBTypes"]),
     .target(name: "CSCBExternal",
@@ -48,6 +52,7 @@ let package = Package(
         .watchOS(.v6)
     ],
     products: [
+//        .executable(name: "sourcery", targets: ["ChatbotDemo"]),
         .executable(name: "ChatbotDemo", targets: ["ChatbotDemo"]),
         .executable(name: "ChatbotMockServer", targets: ["ChatbotMockServer"]),
         .library(name: "CSCBExternal", targets: ["CSCBExternal"]),
@@ -58,3 +63,19 @@ let package = Package(
     targets: targets,
     swiftLanguageVersions: [.v5]
 )
+
+#if canImport(PackageConfig)
+    import PackageConfig
+
+    let config = PackageConfiguration([
+        "komondor": [
+            "pre-push": "swift test",
+            "pre-commit": [
+                "swift test",
+//                "swift run swiftformat .",
+                "swift run swiftlint autocorrect --path Sources/",
+                "git add .",
+            ],
+        ],
+    ]).write()
+#endif

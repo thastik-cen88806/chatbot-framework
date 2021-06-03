@@ -1,5 +1,5 @@
 //
-//  CBTypes
+//  CBMessage
 //  CBTypes
 //
 //  Created by ha100 on 05/20/2021.
@@ -8,6 +8,8 @@
 
 import Foundation
 
+/// envelope object able to be sent via websocket
+///
 public enum CBMessage {
 
     case text(String)

@@ -64,6 +64,6 @@ struct QuestionsController: RouteCollection {
 
                 return req.redirect(to: "/")
             }
-        }
+            }
     }
 }
