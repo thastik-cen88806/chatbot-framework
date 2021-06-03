@@ -1,5 +1,5 @@
 //
-//  ThreadTakeover
+//  ThreadPassover
 //  CSCBTypes
 //
 //  Created by ha100 on 05/20/2021.
@@ -9,9 +9,9 @@
 import Foundation
 import Tagged
 
-/// Thread Takeover
+/// Thread Passover
 ///
-public struct ThreadTakeover: Codable {
+public struct ThreadPassover: Codable {
 
     // MARK: - TypeAliases
 
@@ -21,28 +21,28 @@ public struct ThreadTakeover: Codable {
 
     enum CodingKeys: String, CodingKey {
 
-        case previousOwner = "previous_owner_app_id"
+        case newOwner = "new_owner_app_id"
         case metadata
     }
 
     // MARK: - Properties
 
-    let previousOwner: AppID
+    let newOwner: AppID
 
     let metadata: String?
 
     // MARK: - Init
 
-    /// Thread Takeover
+    /// Thread Passover
     ///
     /// - Parameters:
-    ///   - previousOwner: An application the conversation has been passed to
+    ///   - newOwner: An application the conversation has been passed to
     ///   - metadata: text data
     ///
-    public init(previousOwner: AppID,
+    public init(newOwner: AppID,
                 metadata: String?) {
 
-        self.previousOwner = previousOwner
+        self.newOwner = newOwner
         self.metadata = metadata
     }
 }

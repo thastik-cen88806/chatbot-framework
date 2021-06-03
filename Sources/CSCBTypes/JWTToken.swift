@@ -9,7 +9,14 @@
 import Foundation
 import JWTKit
 
-public struct JWTToken {
+public struct TokenJWT {
+
+    // MARK: - Types
+
+    enum CodingKeys: String, CodingKey {
+
+        case payload = "payload"
+    }
 
     // MARK: - Properties
 
@@ -17,89 +24,74 @@ public struct JWTToken {
     private let signers = JWTSigners()
 
     public let payload: JPayload
-    public var jwt = ""
+    public let jwt: String
 
     // MARK: - Init
 
-    public init() {
+    public init(jwt: String) throws {
 
-        payload = JPayload(t: "u",
-                          bid: "6fy0SXklVeP",
-                          uid: "3Wgs8d111OV0",
-                          cid: "e5932cce-0705-4261-9194-3bd482aba287",
-                          ignoreCookie: true,
-                          issuedAt: .init(value: Date()),
-                          expiration: .init(value: .distantFuture))
-
-        do {
-
-            self.jwt = try self.auth()
-        } catch {
-            print(">>> jwt sign: \(error)")
-        }
-    }
-
-    // MARK: - Lifecycle
-
-    private func auth() throws -> String {
-
-        signers.use(.hs256(key: JWTToken.secret))
-
-        return try self.signers.sign(payload)
-    }
-
-    /// Parses the JWT and verifies its signature
-    ///
-    public func verify() throws -> JPayload {
-
-        return try signers.verify(jwt, as: JPayload.self)
+        self.jwt = jwt
+        
+        signers.use(.hs256(key: TokenJWT.secret))
+        payload = try signers.verify(jwt, as: JPayload.self)
     }
 }
 
-struct OriginalPayload: JWTPayload, Equatable {
+extension TokenJWT: CustomDebugStringConvertible {
 
-    // MARK: - Types
+    public var debugDescription: String {
 
-    enum CodingKeys: String, CodingKey {
-
-        case subject = "sub"
-        case expiration = "exp"
-        case isAdmin = "admin"
-    }
-
-    // MARK: - Properties
-
-    var subject: SubjectClaim
-    var expiration: ExpirationClaim
-    var isAdmin: Bool
-
-    // MARK: - Lifecycle
-
-    func verify(using signer: JWTSigner) throws {
-
-        try self.expiration.verifyNotExpired()
+        return "\(self.payload)"
     }
 }
 
-//{
-//  "t": "u",
-//  "bid": "6fy0SXklVeP",
-//  "uid": "3Wgs8d111OV0",
-//  "cid": "e5932cce-0705-4261-9194-3bd482aba287",
-//  "ignoreBrowserCookie": false,
-//  "iat": 1621844518,
-//  "exp": 1621848118
-//}
+extension TokenJWT: CustomStringConvertible {
+
+    public var description: String {
+        return self.debugDescription
+    }
+}
+
+extension TokenJWT: Decodable {
+
+    public init(from decoder: Decoder) throws {
+
+        let single = try decoder.singleValueContainer()
+        try self.init(jwt: single.decode(String.self))
+    }
+}
+
+extension TokenJWT: Encodable {
+
+    public func encode(to encoder: Encoder) throws {
+
+        var single = encoder.singleValueContainer()
+        try single.encode(payload)
+    }
+}
+
+///````
+///{
+///  "t": "u",
+///  "bid": "4ndCSZAXcdD",
+///  "uid": "3WjrBF31yDlE",
+///  "cid": "e5932cce-0705-4261-9194-3bd482aba287",
+///  "ignoreBrowserCookie": false,
+///  "iat": 1622630033,
+///  "exp": 1622633633
+///}
+///````
+///
 public struct JPayload: JWTPayload, Equatable {
 
     // MARK: - Types
 
     enum CodingKeys: String, CodingKey {
 
-        case t
+        case type = "t"
         case bid
-        case uid
-        case cid
+        case userID = "uid"
+        case channelID = "cid"
         case ignoreCookie = "ignoreBrowserCookie"
         case issuedAt = "iat"
         case expiration = "exp"
@@ -107,10 +99,10 @@ public struct JPayload: JWTPayload, Equatable {
 
     // MARK: - Properties
 
-    var t: String
+    var type: String
     var bid: String
-    var uid: String
-    var cid: String
+    var userID: String
+    var channelID: String
     var ignoreCookie: BoolClaim
     var issuedAt: IssuedAtClaim
     var expiration: ExpirationClaim
@@ -123,30 +115,68 @@ public struct JPayload: JWTPayload, Equatable {
     }
 }
 
-//struct Payload: JWTPayload, Equatable {
-//
-//    // MARK: - Types
-//
-//    enum CodingKeys: String, CodingKey {
-//
-//        case appId
-//        case channelId = "cid"
-//        case contentHash = "sha1"
-//        case tokenType = "t"
-//    }
-//
-//    // MARK: - Properties
-//
-//    let tokenType = "a"
-//    var expiration: ExpirationClaim
-//    var isAdmin: Bool
-//
-//    // MARK: - Init
-//
-//    // MARK: - Lifecycle
-//
-//    func verify(using signer: JWTSigner) throws {
-//
-//        try self.expiration.verifyNotExpired()
-//    }
-//}
+extension JPayload: CustomDebugStringConvertible {
+
+    public var debugDescription: String {
+
+        return "type: \(self.type) "
+        + "bid: \(self.bid) "
+        + "userID: \(self.userID) "
+        + "channelID: \(self.channelID) "
+        + "ignoreCookie: \(self.ignoreCookie)\n"
+        + "           issuedAt: \(self.issuedAt) "
+        + "expiration: \(self.expiration) "
+    }
+}
+
+extension JPayload: CustomStringConvertible {
+
+    public var description: String {
+        return self.debugDescription
+    }
+}
+
+extension ExpirationClaim: CustomDebugStringConvertible {
+
+    public var debugDescription: String {
+
+        return "\(self.value)"
+    }
+}
+
+extension ExpirationClaim: CustomStringConvertible {
+
+    public var description: String {
+        return self.debugDescription
+    }
+}
+
+extension IssuedAtClaim: CustomDebugStringConvertible {
+
+    public var debugDescription: String {
+
+        return "\(self.value)"
+    }
+}
+
+extension IssuedAtClaim: CustomStringConvertible {
+
+    public var description: String {
+        return self.debugDescription
+    }
+}
+
+extension BoolClaim: CustomDebugStringConvertible {
+
+    public var debugDescription: String {
+
+        return "\(self.value)"
+    }
+}
+
+extension BoolClaim: CustomStringConvertible {
+
+    public var description: String {
+        return self.debugDescription
+    }
+}

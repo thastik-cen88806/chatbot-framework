@@ -7,10 +7,16 @@
 //
 
 import Foundation
+import Tagged
 
 /// Channel
 ///
-public struct Channel: Codable {
+public struct Channel: Identified, Codable {
+
+    // MARK: - TypeAliases
+
+    public typealias AppID = Tagged<App, String>
+    public typealias ChannelID = Tagged<Channel, String>
 
     // MARK: - Types
 
@@ -25,12 +31,12 @@ public struct Channel: Codable {
 
     // MARK: - Properties
 
-    let id: String
+    let id: ChannelID
 
     let getStarted: ChannelPayload?
-    let receiverAppId: String?
+    let receiverAppId: AppID?
     let cookieDomain: String?
-    let whitelistedOrigins: Array<String>?
+    let whitelistedOrigins: Array<URL>?
 
     // MARK: - Init
 
@@ -43,11 +49,11 @@ public struct Channel: Codable {
     ///   - cookieDomain: Povolit nastavení cookies pro uvedenou doménu
     ///   - whitelistedOrigins: Povolene URL adresy
     ///
-    public init(id: String,
+    public init(id: ChannelID,
                 getStarted: ChannelPayload?,
-                receiverAppId: String?,
+                receiverAppId: AppID?,
                 cookieDomain: String?,
-                whitelistedOrigins: Array<String>?) {
+                whitelistedOrigins: Array<URL>?) {
 
         self.id = id
         

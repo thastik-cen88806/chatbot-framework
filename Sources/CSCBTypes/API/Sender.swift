@@ -7,12 +7,11 @@
 //
 
 import Foundation
+import Tagged
 
 /// Sender object
 ///
-/// SeeAlso: - [Webchat API Reference](https://ceskasporitelna.github.io/messaging-router-docs/docs/api)
-///
-public struct Sender: Codable {
+public struct Sender<T: TaggedType>: Codable where T: Codable, T.Tag: Identified {
 
     // MARK: - Types
 
@@ -23,15 +22,15 @@ public struct Sender: Codable {
 
     // MARK: - Properties
 
-    let id: String
+    let id: T
 
     // MARK: - Init
 
     /// Sender object
     ///
-    /// - Parameter id: Sender identifier (channel or user)
+    /// - Parameter id: Sender identifier (channel Tagged<Channel, String> or user Tagged<Persona, String>)
     ///
-    public init(id: String) {
+    public init(id: T) {
 
         self.id = id
     }

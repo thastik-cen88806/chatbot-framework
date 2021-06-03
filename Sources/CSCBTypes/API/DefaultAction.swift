@@ -24,7 +24,7 @@ public struct DefaultAction: Codable {
     // MARK: - Properties
 
     let type: ButtonType = .weburl
-    let url: String
+    let url: URL
 
     var webviewHeightRatio: String?
 
@@ -36,7 +36,7 @@ public struct DefaultAction: Codable {
     ///   - url: Url to open
     ///   - webviewHeightRatio: example: tall
     ///
-    public init(url: String,
+    public init(url: URL,
                 webviewHeightRatio: String?) {
 
         self.url = url

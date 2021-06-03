@@ -7,6 +7,7 @@
 ////
 //
 //import Foundation
+//import Tagged
 //
 ///// Background event
 /////
@@ -55,6 +56,10 @@
 /////
 //public struct BackgroundEvent: Codable {
 //
+//    // MARK: - TypeAliases
+//
+//    typealias Timestamp = Tagged<Stamp, Int>
+//
 //    // MARK: - Types
 //
 //    enum CodingKeys: String, CodingKey {
@@ -71,7 +76,7 @@
 //
 //    let recipient: Recipient
 //    let sender: Sender
-//    let timestamp: UInt32
+//    let timestamp: Timestamp
 //    let background: Bool
 //    let postback: Postback
 //    let context: SharedContext
@@ -89,7 +94,7 @@
 //    ///
 //    public init(recipient: Recipient,
 //                sender: Sender,
-//                timestamp: UInt32,
+//                timestamp: Timestamp,
 //                postback: Postback,
 //                context: SharedContext) {
 //

@@ -7,10 +7,15 @@
 //
 
 import Foundation
+import Tagged
 
 /// Identity
 ///
 public struct Identity: Codable {
+
+    // MARK: - TypeAliases
+
+    public typealias IdentityID = Tagged<Identity, String>
 
     // MARK: - Types
 
@@ -23,7 +28,7 @@ public struct Identity: Codable {
 
     // MARK: - Properties
 
-    let id: String
+    let id: IdentityID
     let name: String
     let profileImg: String
 
@@ -36,7 +41,7 @@ public struct Identity: Codable {
     ///   - name: User name
     ///   - profileImg: URL or Base64 encoded image
     ///
-    public init(id: String,
+    public init(id: IdentityID,
                 name: String,
                 profileImg: String) {
 

@@ -1,5 +1,5 @@
 ////
-////  TextMessageEvent
+////  PostBackEvent
 ////  CSCBTypes
 ////
 ////  Created by ha100 on 05/20/2021.
@@ -9,31 +9,16 @@
 //import Foundation
 //import Tagged
 //
-///// Text Message Event
+///// Post Back Event
 /////
-/////````
-/////{
-/////  "recipient":{
-/////    "id":"<ID>"
-/////  },
-/////  "message":{
-/////    "text": "Here is a quick reply!",
-/////    "quick_replies":[
-/////      {
-/////        "content_type":"text",
-/////        "title":"Search",
-/////        "payload":"<POSTBACK_PAYLOAD>"
-/////      }
-/////    ]
-/////  }
-/////}
-/////````
-/////
-//public struct TextMessageEvent: Codable {
+//public struct PostBackEvent: Codable {
 //
 //    // MARK: - TypeAliases
 //
 //    public typealias Timestamp = Tagged<Stamp, Int>
+//    public typealias IdentityID = Tagged<Identity, Int>
+//    public typealias AppID = Tagged<App, String>
+//
 //
 //    // MARK: - Types
 //
@@ -45,49 +30,58 @@
 //        case personaId = "persona_id"
 //        case ownerAppId = "owner_app_id"
 //        case persona
-//        case message
+//        case source = "source_mid"
+//        case context = "setSharedContext"
 //    }
 //
 //    // MARK: - Properties
 //
 //    let recipient: Recipient
-//    let message: TextMessage
+//    let postback: Postback
 //
 //    var sender: Sender?
 //    var timestamp: Timestamp?
-//    var personaId: String?
-//    var ownerAppId: String?
+//    var personaId: IdentityID?
+//    var ownerAppId: AppID?
 //    var persona: Persona?
+//    var source: String?
+//    var context: Dictionary<String, String>?
 //
 //    // MARK: - Init
 //
-//    /// Text Message Event
+//    /// Take Thread Event
 //    ///
 //    /// - Parameters:
 //    ///   - recipient: Recipient identifier (channel or user)
-//    ///   - message: ???
+//    ///   - postback: Developer defined payload
 //    ///   - sender: Sender identifier (channel or user)
 //    ///   - timestamp: Event timestamp
 //    ///   - personaId: ID of Identity to use as a sender
 //    ///   - ownerAppId: Id of the application that is the owner of the thread. This property is
 //    ///                   not sent or it is set to null if the recepient is the owner of the thread
 //    ///   - persona: ???
+//    ///   - source: When the postback is issued as an interaction with button, this is a mid of the
+//    ///             source event
+//    ///   - context: sharedContext - example: OrderedMap { "webUserAgent": "Mozilla/5.0" }
 //    ///
 //    public init(recipient: Recipient,
-//                message: TextMessage,
+//                postback: Postback,
 //                sender: Sender?,
 //                timestamp: Timestamp?,
-//                personaId: String?,
-//                ownerAppId: String?,
-//                persona: Persona?) {
+//                personaId: IdentityID?,
+//                ownerAppId: AppID?,
+//                persona: Persona?,
+//                source: String?,
+//                context: Dictionary<String, String>?) {
 //
 //        self.recipient = recipient
-//        self.message = message
-//        
+//        self.postback = postback
+//
 //        self.sender = sender
 //        self.timestamp = timestamp
 //        self.personaId = personaId
 //        self.ownerAppId = ownerAppId
 //        self.persona = persona
+//        self.source = source
 //    }
 //}

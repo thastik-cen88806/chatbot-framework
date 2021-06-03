@@ -56,10 +56,11 @@ struct QuestionsController: RouteCollection {
 
             return question.save(on: req.db).flatMapThrowing {
 
-                let msg = QuestionAnsweredMessage(questionId: question.requireID())
+                let id = try question.requireID()
+                let msg = QuestionAnsweredMessage(questionId: id)
                 
-                try self.wsController.send(message: msg,
-                                           to: .id(question.askedFrom))
+                self.wsController.send(message: msg,
+                                       to: .id(question.askedFrom))
 
                 return req.redirect(to: "/")
             }

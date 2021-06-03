@@ -5,6 +5,7 @@ import PackageDescription
 let deps: [Package.Dependency] = [
     .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
+    .package(url: "https://github.com/pointfreeco/swift-tagged.git", from: "0.5.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.0-rc"),
@@ -19,7 +20,11 @@ let targets: [Target] = [
                 "Starscream",
                 "CSCBTypes"
             ]),
-    .target(name: "CSCBTypes", dependencies: [.product(name: "JWTKit", package: "jwt-kit")]),
+    .target(name: "CSCBTypes",
+            dependencies: [
+                .product(name: "JWTKit", package: "jwt-kit"),
+                .product(name: "Tagged", package: "swift-tagged"),
+            ]),
     .target(name: "ChatbotMockServer",
             dependencies: [
                 .product(name: "Fluent", package: "fluent"),
@@ -31,7 +36,7 @@ let targets: [Target] = [
                 .unsafeFlags(["-cross-module-optimization"], .when(configuration: .release))
             ]
     ),
-    .testTarget(name: "ChatbotTests", dependencies: ["CSCB"])
+    .testTarget(name: "ChatbotTests", dependencies: ["CSCBTypes"])
 ]
 
 let package = Package(

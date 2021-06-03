@@ -7,8 +7,13 @@
 //
 
 import Foundation
+import Tagged
 
 public struct Postback: Codable {
+
+    // MARK: - TypeAliases
+
+    public typealias AppID = Tagged<App, String>
 
     // MARK: - Types
 
@@ -22,11 +27,18 @@ public struct Postback: Codable {
 
     let payload: String
 
-    var appId: String?
+    var appId: AppID?
 
     // MARK: - Init
 
-    public init(payload: String, appId: String?) {
+    /// Postback
+    ///
+    /// - Parameters:
+    ///   - payload: ??
+    ///   - appId: ??
+    ///
+    public init(payload: String,
+                appId: AppID?) {
 
         self.payload = payload
 

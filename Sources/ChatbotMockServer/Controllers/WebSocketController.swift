@@ -120,14 +120,15 @@ final class WebSocketController {
                     message = "Question created. We will answer it as soon as possible :]"
             }
 
+            let id = try! q.requireID()
             let msg = NewQuestionResponse(success: success,
                                           message: message,
-                                          id: try! q.requireID(),
+                                          id: id,
                                           answered: q.answered,
                                           content: q.content,
                                           createdAt: q.createdAt)
 
-            try? self.send(message: msg, to: .socket(ws))
+            self.send(message: msg, to: .socket(ws))
         }
     }
 

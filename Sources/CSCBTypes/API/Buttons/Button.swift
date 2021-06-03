@@ -29,8 +29,8 @@ public struct Button: Codable {
 
     // MARK: - Properties
 
-    static let urlLengthError = "there can be up to \(TemplatePayload.maxStringLength) characters in url"
-    static let payloadLengthError = "there can be up to \(TemplatePayload.maxStringLength) characters in payload"
+    static let urlLengthError = "there can be up to \(Button.maxStringLength) characters in url"
+    static let payloadLengthError = "there can be up to \(Button.maxStringLength) characters in payload"
     static let titleLengthError = "there can be up to \(Button.maxTitleLength) characters in title"
 
     static let maxStringLength = 1000
@@ -40,7 +40,7 @@ public struct Button: Codable {
     let title: String
 
     var payload: String?
-    var url: String?
+    var url: URL?
 
     // MARK: - Init
 
@@ -57,12 +57,10 @@ public struct Button: Codable {
     public init(type: ButtonType,
                 title: String,
                 payload: String?,
-                url: String?) throws {
+                url: URL?) throws {
 
-        guard let chars = title,
-              chars.count < Button.maxTitleLength else {
+        guard title.count < Button.maxTitleLength else {
                 throw ButtonError.textLengthOverflow(Button.titleLengthError)
-            }
         }
 
         if let pld = payload {
@@ -71,7 +69,7 @@ public struct Button: Codable {
             }
         }
 
-        if let uri = url {
+        if let uri = url?.absoluteString {
             guard uri.count < Button.maxStringLength else {
                 throw ButtonError.textLengthOverflow(Button.urlLengthError)
             }

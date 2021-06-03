@@ -7,10 +7,15 @@
 //
 
 import Foundation
+import Tagged
 
 /// App
 ///
 public struct App: Codable {
+
+    // MARK: - TypeAliases
+
+    public typealias AppID = Tagged<App, String>
 
     // MARK: - Types
 
@@ -30,7 +35,7 @@ public struct App: Codable {
 
     // MARK: - Properties
 
-    let id: String
+    let id: AppID
     let webhook: String
 
     var messages: Bool?
@@ -39,7 +44,7 @@ public struct App: Codable {
     var msgHandovers: Bool?
     var typing: Bool?
     var readDelivery: Bool?
-    var parentAppid: String?
+    var parentAppid: AppID?
     var sharedContextUpdate: Bool?
 
     // MARK: - Init
@@ -58,7 +63,7 @@ public struct App: Codable {
     ///   - parentAppid: Parent Application ID. Null for Master Application
     ///   - sharedContextUpdate: Subscribe for sharedContext changes
     ///
-    public init(id: String,
+    public init(id: AppID,
                 webhook: String,
                 messages: Bool?,
                 msgPostbacks: Bool?,
@@ -66,7 +71,7 @@ public struct App: Codable {
                 msgHandovers: Bool?,
                 typing: Bool?,
                 readDelivery: Bool?,
-                parentAppid: String?,
+                parentAppid: AppID,
                 sharedContextUpdate: Bool?) {
 
         self.id = id

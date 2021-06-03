@@ -73,7 +73,7 @@ public struct TemplatePayload: Codable {
         }
 
         if let btnz = buttons {
-            guard btnz.elements < TemplatePayload.maxArrayElements else {
+            guard btnz.count < TemplatePayload.maxArrayElements else {
                 throw TemplatePayloadError.arrayElementsOverflow(TemplatePayload.buttonArrayError)
             }
         }

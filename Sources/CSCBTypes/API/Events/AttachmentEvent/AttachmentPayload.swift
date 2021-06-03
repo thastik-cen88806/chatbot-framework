@@ -23,7 +23,7 @@ public struct AttachmentPayload: Codable {
 
     // MARK: - Properties
 
-    let url: String
+    let url: URL
 
     // MARK: - Init
 
@@ -31,7 +31,7 @@ public struct AttachmentPayload: Codable {
     ///
     /// - Parameter url: Attachment url
     ///
-    public init(url: String) {
+    public init(url: URL) {
 
         self.url = url
     }

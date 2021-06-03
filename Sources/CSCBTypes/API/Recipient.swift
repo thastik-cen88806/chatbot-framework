@@ -10,9 +10,7 @@ import Foundation
 
 /// Recipient object
 ///
-/// SeeAlso: - [Webchat API Reference](https://ceskasporitelna.github.io/messaging-router-docs/docs/api)
-///
-public struct Recipient: Codable {
+public struct Recipient<T: TaggedType>: Codable where T: Codable, T.Tag: Identified {
 
     // MARK: - Types
 
@@ -23,15 +21,15 @@ public struct Recipient: Codable {
 
     // MARK: - Properties
 
-    let id: String
+    let id: T
 
     // MARK: - Init
 
     /// Recipient object
     ///
-    /// - Parameter id: Recipient identifier (channel or user)
+    /// - Parameter id: Recipient identifier (channel Tagged<Channel, String> or user Tagged<Persona, String>)
     ///
-    public init(id: String) {
+    public init(id: T) {
 
         self.id = id
     }
