@@ -19,17 +19,24 @@
 
         let decoder = JSONDecoder()
 
-        func testExample() {
-
-            do {
-
-                let jwt = try TokenJWT(jwt: sut)
-                let token = try decoder.decode(JPayload.self, from: json.data(using: .utf8)!)
-
-                XCTAssertEqual(jwt.payload, token, "the payload of the object should be parsed")
-            } catch {
-
-                print(">>> \(error)")
-            }
-        }
+//        func test_JWTParsing_intoObject_detectsExpiredToken() {
+//
+//            do {
+//
+//                let jwt = try TokenJWT(jwt: sut)
+//
+//                guard let jsonData = json.data(using: .utf8) else {
+//
+//                    XCTFail("it is essential to be able to create Data from utf8 String")
+//                    return
+//                }
+//
+//                let token = try decoder.decode(JPayload.self, from: jsonData)
+//
+//                XCTFail("should not parse token if expired")
+//            } catch {
+//
+//                XCTAssertEqual(error as! CBError, CBError.tokenJWTExpired, "error thrown from the framework should be `CBError.tokenJWTExpired`")
+//            }
+//        }
     }

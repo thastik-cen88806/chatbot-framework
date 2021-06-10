@@ -42,6 +42,8 @@ public struct TokenJWT {
     }
 }
 
+// MARK: - Debug
+
 extension TokenJWT: CustomDebugStringConvertible {
 
     public var debugDescription: String {
@@ -57,6 +59,8 @@ extension TokenJWT: CustomStringConvertible {
         return self.debugDescription
     }
 }
+
+// MARK: - Codable
 
 extension TokenJWT: Decodable {
 

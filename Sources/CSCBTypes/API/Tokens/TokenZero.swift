@@ -9,11 +9,15 @@
 import Foundation
 import Tagged
 
+/// initial token received from backend carrying the `JWTToken` required to init
+/// the websocket communication
+///
 public struct TokenZero: Codable {
 
     // MARK: - TypeAliases
 
     public typealias Timestamp = Tagged<TokenZero, Stamp>
+    public typealias UserID = Tagged<Persona, String>
 
     // MARK: - Types
 
@@ -30,7 +34,7 @@ public struct TokenZero: Codable {
     fileprivate static let decoder = JSONDecoder()
 
     let userToken: TokenJWT
-    public let userID: String
+    public let userID: UserID
     let windowOpen: Bool
     let timestamp: Timestamp
 
@@ -38,6 +42,8 @@ public struct TokenZero: Codable {
         return self.userToken.jwt
     }
 }
+
+// MARK: - Debug
 
 extension TokenZero: CustomDebugStringConvertible {
 
@@ -53,8 +59,28 @@ extension TokenZero: CustomStringConvertible {
     }
 }
 
+// MARK: - Auxiliary
+
 extension Data {
 
+    /// Helper to allow oneline decode action
+    ///
+    /// Example:
+    /// ========
+    ///````swift
+    ///let jsonWhiteSpace = "\\s"
+    ///let jsonPattern = "\\{(.*)\\}"
+    ///
+    ///let x = try? string
+    ///    .replacingOccurrences(of: jsonWhiteSpace, with: "", options: .regularExpression)
+    ///    .match(regex: jsonPattern)?
+    ///    .data(using: .utf8)?
+    ///    .decode(to: TokenZero.self)
+    ///    .get()
+    ///````
+    /// - Parameter to: object to which the underlining data will be decoded (currently `TokenZero`)
+    /// - Returns: object specified as parameter (currently `TokenZero`) or `CBError.tokenZeroDecode`
+    ///
     public func decode<T: Codable>(to: T.Type) -> Result<T, Error> {
 
         do {

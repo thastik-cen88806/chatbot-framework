@@ -14,7 +14,9 @@
 ///// Note: It will not open the conversation and it lets the bot to decide, if the
 ///// conversation will be opened. For example the seen event is background by default
 /////
-/////````
+///// Example:
+///// ========
+/////````javascript
 /////{
 /////  "sender":{
 /////    "id":"<ID>"
@@ -37,7 +39,9 @@
 /////
 ///// It's possible to override the default behavior, when the event is always passed to a primary receiver application and specify the target app using an postback.appId directive.
 /////
-/////````
+///// Example:
+///// ========
+/////````javascript
 /////{
 /////  "sender":{
 /////    "id":"<ID>"
@@ -74,8 +78,8 @@
 //
 //    // MARK: - Properties
 //
-//    let recipient: Recipient
-//    let sender: Sender
+//    let recipient: Recipient<Tagged<Channel, String>>
+//    let sender: Sender<Tagged<Persona, String>>
 //    let timestamp: Timestamp
 //    let background: Bool
 //    let postback: Postback
@@ -92,8 +96,8 @@
 //    ///   - postback: <#postback description#>
 //    ///   - context: <#context description#>
 //    ///
-//    public init(recipient: Recipient,
-//                sender: Sender,
+//    public init(recipient: Recipient<Tagged<Channel, String>>,
+//                sender: Sender<Tagged<Persona, String>>,
 //                timestamp: Timestamp,
 //                postback: Postback,
 //                context: SharedContext) {

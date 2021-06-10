@@ -9,7 +9,7 @@
 import Foundation
 import Tagged
 
-/// Identity
+/// Identity of communication Entity
 ///
 public struct Identity: Codable {
 

@@ -15,7 +15,9 @@ import Tagged
 public final class CBFrameworkExternal: WebSocketDelegate {
 
     // MARK: -- Properties
-    
+
+    private static let referer = "https://www.csast.csas.cz"
+
     public let tokenPublisher: PassthroughSubject<TokenZero, Never>
     var cancellable: AnyCancellable?
     var isConnected = false
@@ -27,7 +29,7 @@ public final class CBFrameworkExternal: WebSocketDelegate {
     }
 
     private var url: String {
-        return "https://webchat.csast.csas.cz/?token=\(self.token?.jwt ?? "NA")"
+        return "wss://webchat.csast.csas.cz/?token=\(self.token?.jwt ?? "NA")"
     }
     private let _url: String
 
@@ -35,12 +37,14 @@ public final class CBFrameworkExternal: WebSocketDelegate {
 
     private var socket: WebSocket?
     private let server = WebSocketServer()
-    
+    private let encoder = JSONEncoder()
+
     // MARK: -- Init
     
     ///    "http://localhost:8080"
     ///
     public init(url urlString: String) throws {
+
         self._url = urlString
 
         tokenPublisher = PassthroughSubject<TokenZero, Never>()
@@ -69,56 +73,54 @@ public final class CBFrameworkExternal: WebSocketDelegate {
             throw CBError.invalidUri(url: self.url)
         }
 
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData)
         request.addValue("webchat.csast.csas.cz", forHTTPHeaderField: "Host")
         request.addValue("https://webchat.csast.csas.cz", forHTTPHeaderField: "Origin")
-
-//        request.setValue("__exponea_etc__=a129e807-83c4-42f1-82e1-196dc80bfd5b; _gcl_au=1.1.1385879975.1619435227; _cs_c=1; _ga=GA1.2.214172330.1619435229; _fbp=fb.1.1619435228774.124321229; aam_exponea=segs%3D12209348; aam_uuid=56360206856827211261081624787637237117; csasauxid=gEHrq8Y3LSJOq1sUwHfFBLqT8i0LJUUiKcchNSpJrg8zhA8vUN%2F2rwE5hip74pxh3ZAhwkWa1o9iNqALC%2BlHHlmwO4Dh5JuECfJYrgsIdaE%3D#MEP#1619436430249; _cs_cvars=%7B%221%22%3A%5B%22Page%20Name%22%2C%22george%22%5D%2C%222%22%3A%5B%22Page%20Title%22%2C%22George.%20Bankovnictv%C3%AD%20budoucnosti%2C%20kter%C3%A9%20usnad%C5%88uje%20%C5%BEivot%20%7C%20%C4%8Cesk%C3%A1%20spo%C5%99itelna%22%5D%2C%223%22%3A%5B%22Page%20Template%22%2C%22standardContentPage%22%5D%2C%224%22%3A%5B%22Language%22%2C%22cs%22%5D%7D; _cs_id=520c34c7-1434-ae61-88a7-0de4f9dfb78b.1619435227.2.1620807918.1620807918.1.1653599227612.Lax.0; __CT_Data=gpv=3&ckp=tld&dm=csas.cz&apv_57_www56=3&cpv_57_www56=3; AMCVS_FE1920AE5B7C26720A495D34%40AdobeOrg=1; AMCV_FE1920AE5B7C26720A495D34%40AdobeOrg=-330454231%7CMCMID%7C56749854075694931941149552436431866065%7CMCAAMLH-1621412720%7C6%7CMCAAMB-1621412720%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%7CMCOPTOUT-1620815120s%7CNONE%7CvVersion%7C3.1.2%7CMCCIDH%7C-1879704833; _wcc_=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYiIsImJpZCI6IjZmeTBTWGtsVmVQIiwiaWF0IjoxNjIxMzMwMDE0fQ.ab3cSfjZx8OlKIC-t2Y5CIdwLC4XCeaVBaWnBMjhHFg; ARRAffinity=7f12b21206fd37e983e9c7f2cadafff0f471663a0688801c9d593a9db00203cf; ARRAffinitySameSite=7f12b21206fd37e983e9c7f2cadafff0f471663a0688801c9d593a9db00203cf; _wcc_e5932cce0705426191943bd482aba287=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYyIsImJpZCI6IjZmeTBTWGtsVmVQIiwidWlkIjoiM1drMTF1MkRHc3R3IiwiY2lkIjoiZTU5MzJjY2UtMDcwNS00MjYxLTkxOTQtM2JkNDgyYWJhMjg3Iiwib3BlbiI6dHJ1ZSwiaWF0IjoxNjIyNjgxOTYxLCJleHAiOjE2MjI2ODU1NjF9.X90QbYPPKTm_nroMv46sVYDD8-ZwbFgHjJ1w-FYDzeo", forHTTPHeaderField: " Cookie")
         request.setValue("gzip, deflate, br", forHTTPHeaderField: "Accept-Encoding")
-        request.setValue("text/html,application/xhtml+xml,application/xml", forHTTPHeaderField: "Accept")
-
-        request.setValue("keep-alive", forHTTPHeaderField: "connection")
-
-        request.setValue("en-GB,en;q=0.9,en-US;q=0.8,cs;q=0.7", forHTTPHeaderField: "Accept-Language")
-        request.setValue("permessage-deflate; client_max_window_bits", forHTTPHeaderField: "Sec-WebSocket-Extensions")
+//        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+//        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
+//        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Authorization")
+//        request.setValue("keep-alive", forHTTPHeaderField: "connection")
+//        request.setValue("en-GB,en;q=0.9,en-US;q=0.8,cs;q=0.7", forHTTPHeaderField: "Accept-Language")
+//        request.setValue("permessage-deflate; client_max_window_bits", forHTTPHeaderField: "Sec-WebSocket-Extensions")
 //        request.setValue("13", forHTTPHeaderField: "Sec-WebSocket-Version")
 //        request.setValue("websocket", forHTTPHeaderField: "Upgrade")
-        request.setValue("chat,superchat", forHTTPHeaderField: "Sec-WebSocket-Protocol")
-        request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36", forHTTPHeaderField: "User-Agent")
-
+//        request.setValue("chat,superchat", forHTTPHeaderField: "Sec-WebSocket-Protocol")
+        request.setValue(UserAgent.agent, forHTTPHeaderField: "User-Agent")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
 
 //        request.setValue("chat,superchat", forHTTPHeaderField: "Sec-WebSocket-Protocol")
-        request.timeoutInterval = 5
+//        request.timeoutInterval = 5
 
-        HTTPCookieStorage.shared.setCookies(self.cookies ?? [], for: url, mainDocumentURL: nil)
+        HTTPCookieStorage.shared.setCookies(self.cookies ?? [], for: URL(string: "wss://webchat.csast.csas.cz/"), mainDocumentURL: nil)
+
         for cookie in self.cookies! {
-            var cookieProperties = [HTTPCookiePropertyKey: Any]()
-            cookieProperties[.name] = cookie.name
-            cookieProperties[.value] = cookie.value
-            cookieProperties[.domain] = cookie.domain
-            cookieProperties[.path] = cookie.path
-            cookieProperties[.version] = cookie.version
-            cookieProperties[.expires] = Date().addingTimeInterval(31536000)
+//
+//            var cookieProperties = [HTTPCookiePropertyKey: Any]()
+//            cookieProperties[.name] = cookie.name
+//            cookieProperties[.value] = cookie.value
+//            cookieProperties[.domain] = cookie.domain
+//            cookieProperties[.path] = cookie.path
+//            cookieProperties[.version] = cookie.version
+//            cookieProperties[.expires] = Date().addingTimeInterval(31536000)
+//
+//            let newCookie = HTTPCookie(properties: cookieProperties)
+//            HTTPCookieStorage.shared.setCookie(cookie)
 
-            let newCookie = HTTPCookie(properties: cookieProperties)
-            HTTPCookieStorage.shared.setCookie(newCookie!)
-
-            print(">>> cookie: \(cookie.name) value: \(cookie.value)")
+            print(">>> cookie: \(cookie.name): \(cookie.value)")
         }
 
-//        let jar = HTTPCookieStorage.shared
-//        let cookieHeaderField = ["Set-Cookie": "__exponea_etc__=a129e807-83c4-42f1-82e1-196dc80bfd5b; _gcl_au=1.1.1385879975.1619435227; _cs_c=1; _ga=GA1.2.214172330.1619435229; _fbp=fb.1.1619435228774.124321229; aam_exponea=segs%3D12209348; aam_uuid=56360206856827211261081624787637237117; csasauxid=gEHrq8Y3LSJOq1sUwHfFBLqT8i0LJUUiKcchNSpJrg8zhA8vUN%2F2rwE5hip74pxh3ZAhwkWa1o9iNqALC%2BlHHlmwO4Dh5JuECfJYrgsIdaE%3D#MEP#1619436430249; _cs_cvars=%7B%221%22%3A%5B%22Page%20Name%22%2C%22george%22%5D%2C%222%22%3A%5B%22Page%20Title%22%2C%22George.%20Bankovnictv%C3%AD%20budoucnosti%2C%20kter%C3%A9%20usnad%C5%88uje%20%C5%BEivot%20%7C%20%C4%8Cesk%C3%A1%20spo%C5%99itelna%22%5D%2C%223%22%3A%5B%22Page%20Template%22%2C%22standardContentPage%22%5D%2C%224%22%3A%5B%22Language%22%2C%22cs%22%5D%7D; _cs_id=520c34c7-1434-ae61-88a7-0de4f9dfb78b.1619435227.2.1620807918.1620807918.1.1653599227612.Lax.0; __CT_Data=gpv=3&ckp=tld&dm=csas.cz&apv_57_www56=3&cpv_57_www56=3; AMCVS_FE1920AE5B7C26720A495D34%40AdobeOrg=1; AMCV_FE1920AE5B7C26720A495D34%40AdobeOrg=-330454231%7CMCMID%7C56749854075694931941149552436431866065%7CMCAAMLH-1621412720%7C6%7CMCAAMB-1621412720%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%7CMCOPTOUT-1620815120s%7CNONE%7CvVersion%7C3.1.2%7CMCCIDH%7C-1879704833; _wcc_=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYiIsImJpZCI6IjZmeTBTWGtsVmVQIiwiaWF0IjoxNjIxMzMwMDE0fQ.ab3cSfjZx8OlKIC-t2Y5CIdwLC4XCeaVBaWnBMjhHFg; ARRAffinity=7f12b21206fd37e983e9c7f2cadafff0f471663a0688801c9d593a9db00203cf; ARRAffinitySameSite=7f12b21206fd37e983e9c7f2cadafff0f471663a0688801c9d593a9db00203cf; _wcc_e5932cce0705426191943bd482aba287=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYyIsImJpZCI6IjZmeTBTWGtsVmVQIiwidWlkIjoiM1drMTF1MkRHc3R3IiwiY2lkIjoiZTU5MzJjY2UtMDcwNS00MjYxLTkxOTQtM2JkNDgyYWJhMjg3Iiwib3BlbiI6dHJ1ZSwiaWF0IjoxNjIyNjgxOTYxLCJleHAiOjE2MjI2ODU1NjF9.X90QbYPPKTm_nroMv46sVYDD8-ZwbFgHjJ1w-FYDzeo"]
-//        let cookies = HTTPCookie.cookies(withResponseHeaderFields: cookieHeaderField, for: url)
-//        jar.setCookies(cookies, for: url, mainDocumentURL: url)
+        print(">>> sockeeet: \(url.absoluteString)")
 
-
-        let compression = WSCompression()
-        socket = WebSocket(request: request, compressionHandler: compression)
+//        let compression = WSCompression()
+//        socket = WebSocket(request: request, compressionHandler: compression)
 //        socket = WebSocket(request: request, certPinner: pinner)
-//        socket = WebSocket(request: request)
+        let engine = CBEngine()
+        engine.register(delegate: self)
+        socket = WebSocket(request: request, engine: engine)
         socket?.delegate = self
         socket?.connect()
-        print(">>> sockeeet: \(url.absoluteString)")
     }
 
     func updateToken() {
@@ -142,9 +144,10 @@ public final class CBFrameworkExternal: WebSocketDelegate {
 
     func downloadHTML(from url: URL) {
 
-        var request = URLRequest(url: url)
-        request.addValue("https://www.csast.csas.cz", forHTTPHeaderField: "Referer")
+        var request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData)
+        request.setValue(CBFrameworkExternal.referer, forHTTPHeaderField: "Referer")
 //        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(UserAgent.agent, forHTTPHeaderField: "User-Agent")
 
         URLSession.shared.dataTask(with: request) { data, response, error in
 
@@ -167,16 +170,18 @@ public final class CBFrameworkExternal: WebSocketDelegate {
                 return
             }
 
-            self.cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
+            let cookieStorage = HTTPCookieStorage.shared
+            self.cookies = cookieStorage.cookies(for: url)
 
             let jsonWhiteSpace = "\\s"
             let jsonPattern = "\\{(.*)\\}"
 
-            let result = html
+            // losing error context
+            let result = try? html
                 .replacingOccurrences(of: jsonWhiteSpace, with: "", options: .regularExpression)
-                .match(regex: jsonPattern)?
+                .match(regex: jsonPattern)
                 .data(using: .utf8)?
-                .decode(to: TokenZero.self)
+                .decode(to: TokenZero.self) ?? Result.failure(CBError.tokenZeroHTMLExtract(error: html))
 
             switch result {
 
@@ -184,7 +189,7 @@ public final class CBFrameworkExternal: WebSocketDelegate {
 
                 case let .failure(error): print(">>> sink \(error)")
 
-                case .none:  break //Result.failure(CBError.tokenZeroHTMLExtract(error: html))
+                case .none: break // Result.failure(CBError.tokenZeroHTMLExtract(error: html))
 
             }
         }.resume()
@@ -194,22 +199,15 @@ public final class CBFrameworkExternal: WebSocketDelegate {
         socket?.write(ping: Data())
     }
 
-    public func send(_ msg: CBMessage) {
+    public func send<T>(_ msg: T) throws where T: ChatMessage {
 
-        switch msg {
+        let data = try self.encoder.encode(msg)
 
-            case let .text(text): self.write(text: text)
-
-            case let .data(data): self.write(data: data)
-        }
+        self.write(data: data)
     }
 
     // MARK: -- Private
     
-//    private func set(value: String, forHeaderField named: String) {
-//        request.setValue(value, forHTTPHeaderField: named)
-//    }
-
     private func write(text: String) {
         socket?.write(string: text)
     }
@@ -219,7 +217,9 @@ public final class CBFrameworkExternal: WebSocketDelegate {
     }
 
     public func didReceive(event: WebSocketEvent, client: WebSocket) {
+
         print(">>> wss didReceive")
+
         switch event {
 
             case let .connected(headers):
@@ -283,5 +283,13 @@ public final class CBFrameworkExternal: WebSocketDelegate {
             
             print(">>> websocket encountered an error")
         }
+    }
+}
+
+extension CBFrameworkExternal: EngineDelegate {
+
+    public func didReceive(event: WebSocketEvent) {
+
+        print(">>> wss engine didReceive: \(event)")
     }
 }

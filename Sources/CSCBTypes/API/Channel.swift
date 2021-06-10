@@ -16,6 +16,9 @@ public struct Channel: Identified, Codable {
     // MARK: - TypeAliases
 
     public typealias AppID = Tagged<App, String>
+
+    /// default identity identificator is channel's ID
+    ///
     public typealias ChannelID = Tagged<Channel, String>
 
     // MARK: - Types

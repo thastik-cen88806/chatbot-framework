@@ -10,6 +10,8 @@
 
 ## CI/CD Tools
 
+• xcode used to build: Version 12.5 (12E262)
+
 • swiftformat - is used to ensure uniform code formatting across multiple developers
 
 • swiftlint - is used to check general code quality and standards
@@ -49,7 +51,7 @@
 
 ## ChatbotDemo
 
-• simple script to fire request to a mock server, providing example implemmentation
+• sample script to fire request to a mock server, providing example implemmentation
 
 ## ChatbotMockServer
 

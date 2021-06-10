@@ -7,10 +7,11 @@
 //
 
 import Foundation
+import CSCBTypes
 
 extension String {
 
-    func match(regex: String) -> String? {
+    func match(regex: String) throws -> String {
 
         do {
 
@@ -18,14 +19,19 @@ extension String {
             let results = regex.matches(in: self,
                                         range: NSRange(self.startIndex..., in: self))
 
-            return results.map { result in
+            let element = results.map { result in
                 String(self[Range(result.range, in: self)!])
             }.first
 
+            guard let result = element else {
+
+                throw CBError.regexNoMatch(text: self)
+            }
+
+            return result
         } catch {
 
-            print(">>> invalid regex: \(error.localizedDescription)")
-            return nil
+            throw CBError.regexFormat(text: error.localizedDescription)
         }
     }
 }

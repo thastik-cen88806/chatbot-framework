@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum CBError: Error {
+public enum CBError: Error, AutoEquatable {
 
     case arrayElementsOverflow(text: String)
     case invalidUri(url: String)
@@ -19,4 +19,8 @@ public enum CBError: Error {
     case tokenZeroNoHTMLData
     case tokenZeroNoCookies(response: URLResponse?)
     case tokenJWTExpired
+    case regexFormat(text: String)
+    case regexNoMatch(text: String)
 }
+
+protocol AutoEquatable {}

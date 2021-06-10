@@ -10,7 +10,9 @@ import Foundation
 
 /// Text Message
 ///
-///````
+/// Example:
+/// ========
+///````javascript
 ///  {
 ///    "text": "Here is a quick reply!",
 ///    "quick_replies":[

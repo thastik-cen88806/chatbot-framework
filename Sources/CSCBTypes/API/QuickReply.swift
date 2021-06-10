@@ -11,8 +11,8 @@ import Foundation
 /// Quick Reply
 ///
 /// Example:
-/// ====================================
-///````
+/// ========
+///````javascript
 ///{
 ///  "content_type":"text",
 ///  "title":"Search",

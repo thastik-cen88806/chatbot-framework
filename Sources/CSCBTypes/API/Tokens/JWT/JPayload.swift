@@ -9,7 +9,9 @@
 import Foundation
 import JWTKit
 
-///````
+/// Example:
+/// ========
+///````javascript
 ///{
 ///  "t": "u",
 ///  "bid": "4ndCSZAXcdD",
@@ -40,11 +42,30 @@ public struct JPayload: JWTPayload, Equatable {
 
     var type: String
     var bid: String
-    var userID: String
-    var channelID: String
-    var ignoreCookie: BoolClaim
+    var userID: String?
+    var channelID: String?
+    var ignoreCookie: BoolClaim?
     var issuedAt: IssuedAtClaim
-    var expiration: ExpirationClaim
+    var expiration: ExpirationClaim?
+
+    // MARK: - Init
+
+    public init(type: String,
+                bid: String,
+                userID: String?,
+                channelID: String?,
+                ignoreCookie: BoolClaim?,
+                issuedAt: IssuedAtClaim,
+                expiration: ExpirationClaim?) throws {
+
+        self.type = type
+        self.bid = bid
+        self.userID = userID
+        self.channelID = channelID
+        self.ignoreCookie = ignoreCookie
+        self.issuedAt = issuedAt
+        self.expiration = expiration
+    }
 
     // MARK: - Lifecycle
 
@@ -56,8 +77,12 @@ public struct JPayload: JWTPayload, Equatable {
     ///
     public func verify(using signer: JWTSigner) throws {
 
+        guard let expiry = self.expiration else {
+            return
+        }
+
         do {
-            try self.expiration.verifyNotExpired()
+            try expiry.verifyNotExpired()
         } catch {
             throw CBError.tokenJWTExpired
         }
