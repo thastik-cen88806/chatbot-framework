@@ -6,12 +6,14 @@
 //  Copyright © 2021 Ceska sporitelna. All rights reserved.
 //
 
+import Combine
+import CSCBTypes
 import Foundation
 import Logging
 
 public enum WebSocketEvent {
 
-    case connected([String: String])
+    case connected
     case disconnected(String, UInt16)
     case text(String)
     case binary(Data)
@@ -23,53 +25,47 @@ public enum WebSocketEvent {
     case cancelled
 }
 
-public protocol EngineDelegate: AnyObject {
-    func didReceive(event: WebSocketEvent)
-}
-
+/// type of websocket frame to be sent
+///
+/// Note: - ranges 3-7 & B-F are reserved
+///
 public enum FrameOpCode: UInt8 {
 
     case continueFrame = 0x0
     case textFrame = 0x1
     case binaryFrame = 0x2
-    // 3-7 are reserved.
     case connectionClose = 0x8
     case ping = 0x9
     case pong = 0xA
-    // B-F reserved.
     case unknown = 100
 }
 
-public protocol Engine {
-    
-    func register(delegate: EngineDelegate)
-    func start(request: URLRequest)
-    func stop(closeCode: UInt16)
-    func forceStop()
-    func write(data: Data, opcode: FrameOpCode, completion: (() -> ())?)
-    func write(string: String, completion: (() -> ())?)
-}
+public class CBEngine: NSObject {
 
-public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSocketDelegate {
+    // MARK: - Properties
+
+    public let msgPublisher = PassthroughSubject<WebSocketEvent, CBError>()
 
     private var task: URLSessionWebSocketTask?
-    weak var delegate: EngineDelegate?
-    var logger: Logger?
+    private var logger: Logger?
+
+    // MARK: - Init
 
     public required init(logger: Logger) {
 
         self.logger = logger
     }
 
-    public func register(delegate: EngineDelegate) {
-        self.delegate = delegate
-    }
+    // MARK: - Lifecycle
 
     public func start(request: URLRequest) {
 
         self.logger?.info("start: \(request.url?.absoluteString ?? "NA")")
 
-        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
+        let session = URLSession(configuration: .default,
+                                 delegate: self,
+                                 delegateQueue: nil)
+
         task = session.webSocketTask(with: request)
         doRead()
         task?.resume()
@@ -83,51 +79,57 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
     public func stop(closeCode: UInt16) {
 
-        print("stop")
+        self.logger?.info("stop")
         let closeCode = URLSessionWebSocketTask.CloseCode(rawValue: Int(closeCode)) ?? .normalClosure
         task?.cancel(with: closeCode, reason: nil)
     }
 
     public func forceStop() {
 
-        print("forceStop")
+        self.logger?.info("forceStop")
         stop(closeCode: UInt16(URLSessionWebSocketTask.CloseCode.abnormalClosure.rawValue))
     }
 
-    public func write(string: String, completion: (() -> ())?) {
-
-        self.logger?.info("write: \(string)")
-
-        task?.send(.string(string), completionHandler: { error in
-
-            completion?()
-        })
-    }
-
-    public func write(data: Data, opcode: FrameOpCode, completion: (() -> ())?) {
-
-        self.logger?.info("write: \(data)")
+    public func write(data: Data, opcode: FrameOpCode? = .textFrame) {
 
         switch opcode {
 
             case .binaryFrame:
 
+                self.logger?.info("write: \(data)")
+
                 task?.send(.data(data)) { error in
-                    completion?()
+
+                    guard let error = error else { return }
+                    print(">>> ERROR binFrame \(error)")
                 }
 
             case .textFrame:
 
-                let text = String(data: data, encoding: .utf8)!
-                write(string: text, completion: completion)
+                guard let text = String(data: data, encoding: .utf8) else {
+
+                    print(">>> ERROR write utf8 decode")
+                    return
+                }
+
+                self.logger?.info("write: \(text)")
+
+                task?.send(.string(text)) { error in
+
+                    guard let error = error else { return }
+                    print(">>> ERROR write \(error)")
+                }
+
 
             case .ping:
 
                 task?.sendPing { error in
-                    completion?()
+
+                    guard let error = error else { return }
+                    print(">>> ERROR ping \(error)")
                 }
 
-            default: break //unsupported
+            default: print(">>> UNHANDLED")
         }
     }
 
@@ -141,31 +143,35 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
                     switch message {
 
-                        case let .string(string): self?.broadcast(event: .text(string))
+                        case let .string(string): self?.msgPublisher.send(.text(string)); self?.decodeMessage(msg: string)
 
-                        case let .data(data): self?.broadcast(event: .binary(data))
+                        case let .data(data): self?.msgPublisher.send(.binary(data))
 
-                        @unknown default: break
+                        @unknown default: print(">>> UNHANDLED")
                     }
 
-                case let .failure(error): self?.broadcast(event: .error(error))
+                case let .failure(error): self?.msgPublisher.send(.error(error))
             }
 
             self?.doRead()
         }
     }
 
-    private func broadcast(event: WebSocketEvent) {
+    private func decodeMessage(msg: String) {
 
-        delegate?.didReceive(event: event)
+        if let obj = try? JSONDecoder().decode(Object.self, from: msg.data(using: .utf8) ?? Data()) {
+            print("\n\n\n\n\n=============================\n\n\n\n\(obj)")
+        }
     }
+}
+
+extension CBEngine: URLSessionWebSocketDelegate {
 
     public func urlSession(_ session: URLSession,
                            webSocketTask: URLSessionWebSocketTask,
                            didOpenWithProtocol protocol: String?) {
 
-        let p = `protocol` ?? ""
-        broadcast(event: .connected([CBHTTPWSHeader.protocolName: p]))
+        self.msgPublisher.send(.connected)
     }
 
     public func urlSession(_ session: URLSession,
@@ -179,156 +185,6 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
             r = String(data: d, encoding: .utf8) ?? ""
         }
 
-        broadcast(event: .disconnected(r, UInt16(closeCode.rawValue)))
-    }
-}
-
-public enum HTTPUpgradeError: Error {
-
-    case notAnUpgrade(Int)
-    case invalidData
-}
-
-public struct CBHTTPWSHeader {
-
-    static let upgradeName        = "Upgrade"
-    static let upgradeValue       = "websocket"
-    static let hostName           = "Host"
-    static let connectionName     = "Connection"
-    static let connectionValue    = "Upgrade"
-    static let protocolName       = "Sec-WebSocket-Protocol"
-    static let versionName        = "Sec-WebSocket-Version"
-    static let versionValue       = "13"
-    static let extensionName      = "Sec-WebSocket-Extensions"
-    static let keyName            = "Sec-WebSocket-Key"
-    static let originName         = "Origin"
-    static let acceptName         = "Sec-WebSocket-Accept"
-    static let switchProtocolCode = 101
-    static let defaultSSLSchemes  = ["wss", "https"]
-
-    /// Creates a new URLRequest based off the source URLRequest.
-    /// - Parameter request: the request to "upgrade" the WebSocket request by adding headers.
-    /// - Parameter supportsCompression: set if the client support text compression.
-    /// - Parameter secKeyName: the security key to use in the WebSocket request. https://tools.ietf.org/html/rfc6455#section-1.3
-    /// - returns: A URLRequest request to be converted to data and sent to the server.
-    ///
-    public static func createUpgrade(request: URLRequest,
-                                     supportsCompression: Bool,
-                                     secKeyValue: String) -> URLRequest {
-
-        guard let url = request.url,
-              let parts = url.CBgetParts() else {
-
-            return request
-        }
-
-        var req = request
-
-        if request.value(forHTTPHeaderField: CBHTTPWSHeader.originName) == nil {
-
-            var origin = url.absoluteString
-
-            if let hostUrl = URL(string: "/", relativeTo: url) {
-
-                origin = hostUrl.absoluteString
-                origin.remove(at: origin.index(before: origin.endIndex))
-            }
-
-            req.setValue(origin, forHTTPHeaderField: CBHTTPWSHeader.originName)
-        }
-
-        req.setValue(CBHTTPWSHeader.upgradeValue, forHTTPHeaderField: CBHTTPWSHeader.upgradeName)
-        req.setValue(CBHTTPWSHeader.connectionValue, forHTTPHeaderField: CBHTTPWSHeader.connectionName)
-        req.setValue(CBHTTPWSHeader.versionValue, forHTTPHeaderField: CBHTTPWSHeader.versionName)
-        req.setValue(secKeyValue, forHTTPHeaderField: CBHTTPWSHeader.keyName)
-
-        if let cookies = HTTPCookieStorage.shared.cookies(for: url),
-           !cookies.isEmpty {
-
-            let headers = HTTPCookie.requestHeaderFields(with: cookies)
-
-            for (key, val) in headers {
-                req.setValue(val, forHTTPHeaderField: key)
-            }
-        }
-
-        if supportsCompression {
-            let val = "permessage-deflate; client_max_window_bits; server_max_window_bits=15"
-            req.setValue(val, forHTTPHeaderField: CBHTTPWSHeader.extensionName)
-        }
-        let hostValue = req.allHTTPHeaderFields?[CBHTTPWSHeader.hostName] ?? "\(parts.host):\(parts.port)"
-        req.setValue(hostValue, forHTTPHeaderField: CBHTTPWSHeader.hostName)
-        return req
-    }
-}
-
-public enum HTTPEvent {
-
-    case success([String: String])
-    case failure(Error)
-}
-
-public protocol HTTPHandlerDelegate: AnyObject {
-    func didReceiveHTTP(event: HTTPEvent)
-}
-
-public protocol HTTPHandler {
-
-    func register(delegate: HTTPHandlerDelegate)
-    func convert(request: URLRequest) -> Data
-    func parse(data: Data) -> Int
-}
-
-//public protocol HTTPServerDelegate: AnyObject {
-//    func didReceive(event: HTTPEvent)
-//}
-//
-//public protocol HTTPServerHandler {
-//    func register(delegate: HTTPServerDelegate)
-//    func parse(data: Data)
-//    func createResponse(headers: [String: String]) -> Data
-//}
-
-public struct CBURLParts {
-
-    let port: Int
-    let host: String
-    let isTLS: Bool
-}
-
-public extension URL {
-
-    /// isTLSScheme returns true if the scheme is https or wss
-    ///
-    var isTLSScheme: Bool {
-
-        guard let scheme = self.scheme else {
-            return false
-        }
-
-        return CBHTTPWSHeader.defaultSSLSchemes.contains(scheme)
-    }
-
-    /// getParts pulls host and port from the url
-    ///
-    func CBgetParts() -> CBURLParts? {
-
-        guard let host = self.host else {
-            return nil // no host, this isn't a valid url
-        }
-
-        let isTLS = isTLSScheme
-        var port = self.port ?? 0
-
-        if self.port == nil {
-
-            if isTLS {
-                port = 443
-            } else {
-                port = 80
-            }
-        }
-
-        return CBURLParts(port: port, host: host, isTLS: isTLS)
+        self.msgPublisher.send(.disconnected(r, UInt16(closeCode.rawValue)))
     }
 }

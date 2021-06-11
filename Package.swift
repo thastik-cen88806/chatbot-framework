@@ -9,10 +9,11 @@ let deps: [Package.Dependency] = [
     .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.0-rc"),
     .package(url: "https://github.com/vapor/leaf", from: "4.0.0-rc"),
-    .package(url: "https://github.com/krzysztofzablocki/Sourcery", .exact("1.3.1")),
+//    .package(url: "https://github.com/krzysztofzablocki/Sourcery", .exact("1.3.1")),
     .package(url: "https://github.com/Realm/SwiftLint", from: "0.28.1"),
     .package(url: "https://github.com/shibapm/Komondor.git", from: "1.0.0"),
     .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+    .package(url: "https://github.com/yonaskolb/SwagGen.git", from: "4.4.0")
 ]
 
 let targets: [Target] = [

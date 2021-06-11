@@ -14,36 +14,42 @@ import Logging
 
 public final class CBFramework {
 
+    // MARK: -- Types
+
+    private enum Key {
+
+        static let referer = "https://www.csast.csas.cz"
+        static let channelID = "e5932cce-0705-4261-9194-3bd482aba287"
+    }
+
     // MARK: -- Properties
 
-    private static let referer = "https://www.csast.csas.cz"
-    private static let channelID = "e5932cce-0705-4261-9194-3bd482aba287"
+    public let tokenPublisher = PassthroughSubject<TokenZero, CBError>()
 
-    public let tokenPublisher: PassthroughSubject<TokenZero, CBError>
     var cancellable: AnyCancellable?
+    var cancellable2: AnyCancellable?
 
+    private let encoder = JSONEncoder()
+    private let logger = Logger(label: "websocka")
+    private let _url: String
+    private var cookies: [HTTPCookie]?
+    private var socket: CBEngine?
     private var token: TokenZero?
 
     private var url: String {
         return "\(self._url)?token=\(self.token?.jwt ?? "NA")"
     }
-    private let _url: String
-
-    var cookies: [HTTPCookie]?
-
-    private var socket: CBEngine?
-    private let encoder = JSONEncoder()
-    let logger = Logger(label: "websocka")
 
     // MARK: -- Init
-    
-    ///    "http://localhost:8080"
+
+    /// create the framework object with connection created to specified `URL`
+    ///
+    /// - Parameter urlString: <#urlString description#>
+    /// - Throws: <#description#>
     ///
     public init(url urlString: String) throws {
 
         self._url = urlString
-
-        tokenPublisher = PassthroughSubject<TokenZero, CBError>()
 
         self.cancellable = tokenPublisher.sink(receiveCompletion: { _ in
             print(">>> finished")
@@ -83,13 +89,61 @@ public final class CBFramework {
 
         self.logger.info("request: \(url.absoluteString)")
         socket = CBEngine(logger: self.logger)
-        socket?.register(delegate: self)
+
+        self.cancellable2 = self.socket?.msgPublisher.sink(receiveCompletion: { _ in
+            print(">>> finished")
+        }, receiveValue: { [weak self] event in
+
+            self?.logger.info("\n---------------\n\(event)")
+
+            switch event {
+
+                case .connected: self?.startConversation()
+
+                case .disconnected(_, _): print("disconnected")
+
+                case .text(_): print("text")
+
+                case .binary(_): print("binary")
+
+                case .pong(_): print("pong")
+
+                case .ping(_): print("ping")
+
+                case .error(_): print("error")
+
+                case .viabilityChanged(_): print("visibility")
+
+                case .reconnectSuggested(_): print("reconnect")
+
+                case .cancelled: print("cancel")
+            }
+        })
+
         socket?.start(request: request)
+    }
+
+    private func startConversation() {
+
+        let channelID: Tagged<Channel, String> = "e5932cce-0705-4261-9194-3bd482aba287"
+
+        guard let senderID = self.token?.userID else {
+            fatalError(">>> failed senderID")
+        }
+
+        let sender = Sender(id: senderID)
+        let recipient = Recipient(id: channelID)
+
+        let json = Init(recipient: recipient, sender: sender)
+        let start = Start(recipient: recipient, sender: sender)
+
+        try? self.send(json)
+        try? self.send(start)
     }
 
     func updateToken() {
 
-        let tokenUrl = URL(string: "https://webchat.csast.csas.cz/api/frame?cid=\(CBFramework.channelID)")!
+        let tokenUrl = URL(string: "https://webchat.csast.csas.cz/api/frame?cid=\(Key.channelID)")!
         try? self.getToken(from: tokenUrl)
     }
 
@@ -106,7 +160,7 @@ public final class CBFramework {
         self.logger.info("getToken")
 
         var request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData)
-        request.setValue(CBFramework.referer, forHTTPHeaderField: "Referer")
+        request.setValue(Key.referer, forHTTPHeaderField: "Referer")
         request.setValue(UserAgent.agent, forHTTPHeaderField: "User-Agent")
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -147,55 +201,7 @@ public final class CBFramework {
     public func send<T>(_ msg: T) throws where T: ChatMessage {
 
         let jsonData = try self.encoder.encode(msg)
-        let jsonString = String(data: jsonData, encoding: .utf8)!
 
-        socket?.write(string: jsonString, completion: nil)
-    }
-}
-
-extension CBFramework: EngineDelegate {
-
-    public func didReceive(event: WebSocketEvent) {
-
-        self.logger.info("\(event)")
-
-        switch event {
-
-            case .connected(_):
-
-                let channelID: Tagged<Channel, String> = "e5932cce-0705-4261-9194-3bd482aba287"
-
-                guard let senderID = self.token?.userID else {
-                    fatalError(">>> failed senderID")
-                }
-
-                let sender = Sender(id: senderID)
-                let recipient = Recipient(id: channelID)
-
-                let json = Init(recipient: recipient, sender: sender)
-                let start = Start(recipient: recipient, sender: sender)
-
-                try? self.send(json)
-                try? self.send(start)
-
-            case .disconnected(_, _):
-                print("disconnected")
-            case .text(_):
-                print("text")
-            case .binary(_):
-                print("binary")
-            case .pong(_):
-                print("pong")
-            case .ping(_):
-                print("ping")
-            case .error(_):
-                print("error")
-            case .viabilityChanged(_):
-                print("visibility")
-            case .reconnectSuggested(_):
-                print("reconnect")
-            case .cancelled:
-                print("cancel")
-        }
+        socket?.write(data: jsonData)
     }
 }

@@ -25,7 +25,7 @@ import Tagged
 /// }
 ///````
 ///
-public struct TypingEvent<T: TaggedType>: Codable where T: Codable, T.Tag: Identified {
+public struct TypingEvent<R: TaggedType, S: TaggedType>: Codable where R: Codable, S: Codable, R.Tag: Identified, S.Tag: Identified {
 
     // MARK: - TypeAliases
 
@@ -46,10 +46,10 @@ public struct TypingEvent<T: TaggedType>: Codable where T: Codable, T.Tag: Ident
 
     // MARK: - Properties
 
-    let recipient: Recipient<T>
+    let recipient: Recipient<R>
     let action: TypingType
 
-    var sender: Sender<T>?
+    var sender: Sender<S>?
     var timestamp: Timestamp?
     var personaId: String?
     var ownerAppId: String?
@@ -69,9 +69,9 @@ public struct TypingEvent<T: TaggedType>: Codable where T: Codable, T.Tag: Ident
     ///                 not sent or it is set to null if the recepient is the owner of the thread
     ///   - persona: ??
     ///
-    public init(recipient: Recipient<T>,
+    public init(recipient: Recipient<R>,
                 action: TypingType,
-                sender: Sender<T>?,
+                sender: Sender<S>?,
                 timestamp: Timestamp?,
                 personaId: String?,
                 ownerAppId: String?,

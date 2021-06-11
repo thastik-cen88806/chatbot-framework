@@ -31,7 +31,7 @@ import Tagged
 ///}
 ///````
 ///
-public struct TextMessageEvent<T: TaggedType>: Codable where T: Codable, T.Tag: Identified {
+public struct TextMessageEvent<R: TaggedType, S: TaggedType>: Codable where R: Codable, S: Codable, R.Tag: Identified, S.Tag: Identified {
 
     // MARK: - TypeAliases
 
@@ -52,10 +52,10 @@ public struct TextMessageEvent<T: TaggedType>: Codable where T: Codable, T.Tag: 
 
     // MARK: - Properties
 
-    let recipient: Recipient<T>
+    let recipient: Recipient<R>
     let message: TextMessage
 
-    var sender: Sender<T>?
+    var sender: Sender<S>?
     var timestamp: Timestamp?
     var personaId: String?
     var ownerAppId: String?
@@ -75,9 +75,9 @@ public struct TextMessageEvent<T: TaggedType>: Codable where T: Codable, T.Tag: 
     ///                   not sent or it is set to null if the recepient is the owner of the thread
     ///   - persona: ???
     ///
-    public init(recipient: Recipient<T>,
+    public init(recipient: Recipient<R>,
                 message: TextMessage,
-                sender: Sender<T>?,
+                sender: Sender<S>?,
                 timestamp: Timestamp?,
                 personaId: String?,
                 ownerAppId: String?,
