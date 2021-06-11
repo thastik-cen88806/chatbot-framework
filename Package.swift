@@ -3,7 +3,6 @@
 import PackageDescription
 
 let deps: [Package.Dependency] = [
-    .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.0"),
     .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
     .package(url: "https://github.com/pointfreeco/swift-tagged.git", from: "0.5.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
@@ -16,13 +15,8 @@ let deps: [Package.Dependency] = [
 ]
 
 let targets: [Target] = [
-    .target(name: "ChatbotDemo", dependencies: ["CSCBExternal"]),
+    .target(name: "ChatbotDemo", dependencies: ["CSCB"]),
     .target(name: "CSCB", dependencies: ["CSCBTypes"]),
-    .target(name: "CSCBExternal",
-            dependencies: [
-                "Starscream",
-                "CSCBTypes"
-            ]),
     .target(name: "CSCBTypes",
             dependencies: [
                 .product(name: "JWTKit", package: "jwt-kit"),
@@ -53,7 +47,6 @@ let package = Package(
     products: [
         .executable(name: "ChatbotDemo", targets: ["ChatbotDemo"]),
         .executable(name: "ChatbotMockServer", targets: ["ChatbotMockServer"]),
-        .library(name: "CSCBExternal", targets: ["CSCBExternal"]),
         .library(name: "CSCB", targets: ["CSCB"]),
         .library(name: "CSCBTypes", targets: ["CSCBTypes"]),
     ],

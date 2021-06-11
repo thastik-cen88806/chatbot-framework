@@ -34,19 +34,27 @@ public struct Init: ChatMessage, Codable {
 
     // MARK: - Init
 
+    public init(recipient: Recipient<Tagged<Channel, String>>,
+                sender: Sender<Tagged<Persona, String>>) {
+
+        self.`init` = [:]
+        self.recipient = recipient
+        self.sender = sender
+    }
+
     /// Init object used to start the communication
     ///
     /// - Parameters:
     ///   - init: empty struct (implemented as seen in webchat)
-    ///   - sender: Sender identifier (channel or user)
     ///   - recipient: Recipient identifier (channel or user)
+    ///   - sender: Sender identifier (channel or user)
     ///
     public init(`init`: Dictionary<String, String>,
-                sender: Sender<Tagged<Persona, String>>,
-                recipient: Recipient<Tagged<Channel, String>>) {
+                recipient: Recipient<Tagged<Channel, String>>,
+                sender: Sender<Tagged<Persona, String>>) {
 
         self.`init` = `init`
-        self.sender = sender
         self.recipient = recipient
+        self.sender = sender
     }
 }

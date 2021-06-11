@@ -16,8 +16,8 @@ public enum CBError: Error, AutoEquatable {
     case textLengthOverflow(text: String)
     case tokenZeroDecode(error: String)
     case tokenZeroHTMLExtract(error: String)
+    case tokenZeroDataDecoding(data: Data)
     case tokenZeroNoHTMLData
-    case tokenZeroNoCookies(response: URLResponse?)
     case tokenJWTExpired
     case regexFormat(text: String)
     case regexNoMatch(text: String)

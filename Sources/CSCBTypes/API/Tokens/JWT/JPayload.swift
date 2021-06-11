@@ -89,6 +89,8 @@ public struct JPayload: JWTPayload, Equatable {
     }
 }
 
+// MARK: - Debug
+
 extension JPayload: CustomDebugStringConvertible {
 
     public var debugDescription: String {

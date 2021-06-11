@@ -61,6 +61,26 @@ extension TokenZero: CustomStringConvertible {
 
 // MARK: - Auxiliary
 
+extension String {
+
+    public func decodeTokenZero() throws -> TokenZero {
+
+        let jsonWhiteSpace = "\\s"
+        let jsonPattern = "\\{(.*)\\}"
+
+        guard let result = try? self
+            .replacingOccurrences(of: jsonWhiteSpace, with: "", options: .regularExpression)
+            .match(regex: jsonPattern)
+            .data(using: .utf8)?
+            .decode(to: TokenZero.self) else {
+
+                throw CBError.tokenZeroHTMLExtract(error: self)
+        }
+
+        return result
+    }
+}
+
 extension Data {
 
     /// Helper to allow oneline decode action
@@ -79,19 +99,18 @@ extension Data {
     ///    .get()
     ///````
     /// - Parameter to: object to which the underlining data will be decoded (currently `TokenZero`)
-    /// - Returns: object specified as parameter (currently `TokenZero`) or `CBError.tokenZeroDecode`
+    /// - Throws: `CBError.tokenZeroDecode` if decoding json value fails
+    /// - Returns: object specified as parameter (currently `TokenZero`)
     ///
-    public func decode<T: Codable>(to: T.Type) -> Result<T, Error> {
+    fileprivate func decode<T: Codable>(to: T.Type) throws -> T {
 
         do {
 
-            let token = try TokenZero.decoder.decode(T.self, from: self)
-            return Result.success(token)
+            return try TokenZero.decoder.decode(T.self, from: self)
 
         } catch {
 
-            let resultError = CBError.tokenZeroDecode(error: error.localizedDescription)
-            return Result.failure(resultError)
+            throw CBError.tokenZeroDecode(error: error.localizedDescription)
         }
     }
 }

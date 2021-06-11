@@ -1,5 +1,5 @@
 //
-//  String+Extension
+//  String+Regex
 //  ChatbotFrameworkExternal
 //
 //  Created by ha100 on 05/20/2021.
@@ -7,11 +7,10 @@
 //
 
 import Foundation
-import CSCBTypes
 
 extension String {
 
-    func match(regex: String) throws -> String {
+    public func match(regex: String) throws -> String {
 
         do {
 

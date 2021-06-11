@@ -37,14 +37,6 @@
 [Tagged](https://www.pointfree.co/episodes/ep12-tagged)
 [swift-tagged](https://github.com/pointfreeco/swift-tagged)
 
-## CSCBExternal
-
-• uses `Starscream` framework for networking - https://github.com/daltoniam/Starscream
-
-• use of this taget is prefered over `CSCB` due to better stability until the native implementation is thoroughly tested and pronounced stable - multiple bug radars has been filed to Apple by comunity 
-
-• it should be noted tho that the size of the framework is roughly 500kb bigger than the native `CSCB` target implementation and could be swapped for native implemmentation in constrained environments
-
 ## CSCB
 
 • uses Apple `URLSession` framework  for networking

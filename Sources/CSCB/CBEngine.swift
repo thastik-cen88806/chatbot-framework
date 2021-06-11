@@ -1,12 +1,50 @@
 //
-//  File.swift
+//  CBEngine
+//  CSCB
 //
-//
-//  Created by tom Hastik on 10/06/2021.
+//  Created by ha100 on 05/20/2021.
+//  Copyright © 2021 Ceska sporitelna. All rights reserved.
 //
 
 import Foundation
-import Starscream
+
+public enum WebSocketEvent {
+    case connected([String: String])
+    case disconnected(String, UInt16)
+    case text(String)
+    case binary(Data)
+    case pong(Data?)
+    case ping(Data?)
+    case error(Error?)
+    case viabilityChanged(Bool)
+    case reconnectSuggested(Bool)
+    case cancelled
+}
+
+public protocol EngineDelegate: AnyObject {
+    func didReceive(event: WebSocketEvent)
+}
+
+public enum FrameOpCode: UInt8 {
+    case continueFrame = 0x0
+    case textFrame = 0x1
+    case binaryFrame = 0x2
+    // 3-7 are reserved.
+    case connectionClose = 0x8
+    case ping = 0x9
+    case pong = 0xA
+    // B-F reserved.
+    case unknown = 100
+}
+
+public protocol Engine {
+    func register(delegate: EngineDelegate)
+    func start(request: URLRequest)
+    func stop(closeCode: UInt16)
+    func forceStop()
+    func write(data: Data, opcode: FrameOpCode, completion: (() -> ())?)
+    func write(string: String, completion: (() -> ())?)
+}
 
 public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSocketDelegate {
 
@@ -26,6 +64,11 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
         task?.resume()
     }
 
+    public func disconnect() {
+
+        task?.cancel(with: URLSessionWebSocketTask.CloseCode.normalClosure, reason: nil)
+    }
+
     public func stop(closeCode: UInt16) {
 
         print(">>> wss engine stop")
@@ -42,69 +85,91 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
     public func write(string: String, completion: (() -> ())?) {
 
         print(">>> wss engine write string")
-        task?.send(.string(string), completionHandler: { (error) in
+
+        task?.send(.string(string), completionHandler: { error in
+
             print(">>> wss engine write string response: \(error)")
             completion?()
         })
     }
 
     public func write(data: Data, opcode: FrameOpCode, completion: (() -> ())?) {
+
         print(">>> wss engine write data")
+
         switch opcode {
-        case .binaryFrame:
-            task?.send(.data(data), completionHandler: { (error) in
-                print(">>> wss engine write data response: \(error)")
-                completion?()
-            })
-        case .textFrame:
-            let text = String(data: data, encoding: .utf8)!
-            write(string: text, completion: completion)
-        case .ping:
-            task?.sendPing(pongReceiveHandler: { (error) in
-                completion?()
-            })
-        default:
-            break //unsupported
+
+            case .binaryFrame:
+
+                task?.send(.data(data), completionHandler: { error in
+
+                    print(">>> wss engine write data response: \(error)")
+                    completion?()
+                })
+
+            case .textFrame:
+
+                let text = String(data: data, encoding: .utf8)!
+                write(string: text, completion: completion)
+
+            case .ping:
+
+                task?.sendPing(pongReceiveHandler: { error in
+                    completion?()
+                })
+
+            default: break //unsupported
         }
     }
 
     private func doRead() {
-        task?.receive { [weak self] (result) in
+
+        task?.receive { [weak self] result in
+
             switch result {
-            case .success(let message):
-                print(">>> wss engine msg: \(message)")
-                switch message {
-                case .string(let string):
-                    self?.broadcast(event: .text(string))
-                case .data(let data):
-                    self?.broadcast(event: .binary(data))
-                @unknown default:
-                    break
-                }
-                break
-            case .failure(let error):
-                print(">>> wss engine error: \(error)")
-                self?.broadcast(event: .error(error))
+
+                case let .success(message):
+
+                    switch message {
+
+                        case let .string(string): self?.broadcast(event: .text(string))
+
+                        case let .data(data): self?.broadcast(event: .binary(data))
+
+                        @unknown default: break
+                    }
+
+                case let .failure(error): self?.broadcast(event: .error(error))
             }
+
             self?.doRead()
         }
     }
 
     private func broadcast(event: WebSocketEvent) {
-        print(">>> wss engine broadcast: \(event)")
+
         delegate?.didReceive(event: event)
     }
 
-    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+    public func urlSession(_ session: URLSession,
+                           webSocketTask: URLSessionWebSocketTask,
+                           didOpenWithProtocol protocol: String?) {
+
         let p = `protocol` ?? ""
         broadcast(event: .connected([CBHTTPWSHeader.protocolName: p]))
     }
 
-    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+    public func urlSession(_ session: URLSession,
+                           webSocketTask: URLSessionWebSocketTask,
+                           didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
+                           reason: Data?) {
+
         var r = ""
+
         if let d = reason {
             r = String(data: d, encoding: .utf8) ?? ""
         }
+
         broadcast(event: .disconnected(r, UInt16(closeCode.rawValue)))
     }
 }
@@ -211,13 +276,13 @@ public struct CBURLParts {
 }
 
 public extension URL {
-//    /// isTLSScheme returns true if the scheme is https or wss
-//    var isTLSScheme: Bool {
-//        guard let scheme = self.scheme else {
-//            return false
-//        }
-//        return HTTPWSHeader.defaultSSLSchemes.contains(scheme)
-//    }
+    /// isTLSScheme returns true if the scheme is https or wss
+    var isTLSScheme: Bool {
+        guard let scheme = self.scheme else {
+            return false
+        }
+        return CBHTTPWSHeader.defaultSSLSchemes.contains(scheme)
+    }
 
     /// getParts pulls host and port from the url.
     func CBgetParts() -> CBURLParts? {
