@@ -9,6 +9,8 @@
 import Combine
 import CSCBTypes
 import Foundation
+import Tagged // should not be called from here
+import Logging
 
 public final class CBFramework {
 
@@ -20,14 +22,10 @@ public final class CBFramework {
     public let tokenPublisher: PassthroughSubject<TokenZero, CBError>
     var cancellable: AnyCancellable?
 
-    public var token: TokenZero? {
-        didSet {
-            try? self.connect()
-        }
-    }
+    private var token: TokenZero?
 
     private var url: String {
-        return "wss://webchat.csast.csas.cz/?token=\(self.token?.jwt ?? "NA")"
+        return "\(self._url)?token=\(self.token?.jwt ?? "NA")"
     }
     private let _url: String
 
@@ -35,6 +33,7 @@ public final class CBFramework {
 
     private var socket: CBEngine?
     private let encoder = JSONEncoder()
+    let logger = Logger(label: "websocka")
 
     // MARK: -- Init
     
@@ -46,14 +45,13 @@ public final class CBFramework {
 
         tokenPublisher = PassthroughSubject<TokenZero, CBError>()
 
-//        let pinner = FoundationSecurity(allowSelfSigned: true)
-
         self.cancellable = tokenPublisher.sink(receiveCompletion: { _ in
             print(">>> finished")
         }, receiveValue: { [weak self] value in
 
-            print(">>> token: \(value)")
+            self?.logger.info("\(value)")
             self?.token = value
+            try? self?.connect()
         })
 
         defer {
@@ -80,19 +78,17 @@ public final class CBFramework {
                                             mainDocumentURL: nil)
 
         for cookie in self.cookies! {
-            print(">>> cookie: \(cookie.name): \(cookie.value)")
+            self.logger.info("cookie: \(cookie.name): \(cookie.value)")
         }
 
-        print(">>> wss request: \(url.absoluteString)")
-
-        socket = CBEngine()
+        self.logger.info("request: \(url.absoluteString)")
+        socket = CBEngine(logger: self.logger)
         socket?.register(delegate: self)
         socket?.start(request: request)
     }
 
     func updateToken() {
 
-        print(">>> token update")
         let tokenUrl = URL(string: "https://webchat.csast.csas.cz/api/frame?cid=\(CBFramework.channelID)")!
         try? self.getToken(from: tokenUrl)
     }
@@ -106,6 +102,8 @@ public final class CBFramework {
     // MARK: -- LifeCycle
 
     func getToken(from url: URL) throws {
+
+        self.logger.info("getToken")
 
         var request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData)
         request.setValue(CBFramework.referer, forHTTPHeaderField: "Referer")
@@ -159,6 +157,45 @@ extension CBFramework: EngineDelegate {
 
     public func didReceive(event: WebSocketEvent) {
 
-        print(">>> wss engine didReceive: \(event)")
+        self.logger.info("\(event)")
+
+        switch event {
+
+            case .connected(_):
+
+                let channelID: Tagged<Channel, String> = "e5932cce-0705-4261-9194-3bd482aba287"
+
+                guard let senderID = self.token?.userID else {
+                    fatalError(">>> failed senderID")
+                }
+
+                let sender = Sender(id: senderID)
+                let recipient = Recipient(id: channelID)
+
+                let json = Init(recipient: recipient, sender: sender)
+                let start = Start(recipient: recipient, sender: sender)
+
+                try? self.send(json)
+                try? self.send(start)
+
+            case .disconnected(_, _):
+                print("disconnected")
+            case .text(_):
+                print("text")
+            case .binary(_):
+                print("binary")
+            case .pong(_):
+                print("pong")
+            case .ping(_):
+                print("ping")
+            case .error(_):
+                print("error")
+            case .viabilityChanged(_):
+                print("visibility")
+            case .reconnectSuggested(_):
+                print("reconnect")
+            case .cancelled:
+                print("cancel")
+        }
     }
 }

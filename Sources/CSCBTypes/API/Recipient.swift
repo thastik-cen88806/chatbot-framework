@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Tagged
 
 /// Recipient object
 ///
@@ -34,3 +35,35 @@ public struct Recipient<T: TaggedType>: Codable where T: Codable, T.Tag: Identif
         self.id = id
     }
 }
+
+//extension Recipient: ExpressibleByStringLiteral where T: Tagged, T.Tag == Channel, T.RawValue == String {
+//
+//    public init(stringLiteral value: String) {
+//
+//        self.init(id: Tagged<Channel, String>(rawValue: value) as! T)
+//    }
+//}
+//
+//extension Recipient: ExpressibleByExtendedGraphemeClusterLiteral where T.RawValue: ExpressibleByExtendedGraphemeClusterLiteral {
+//    public typealias ExtendedGraphemeClusterLiteralType = T.RawValue.ExtendedGraphemeClusterLiteralType
+//
+//  public init(extendedGraphemeClusterLiteral: ExtendedGraphemeClusterLiteralType) {
+//    self.init(id: T.RawValue(extendedGraphemeClusterLiteral: extendedGraphemeClusterLiteral))
+//  }
+//}
+//
+//extension Recipient: ExpressibleByStringLiteral where T.RawValue: ExpressibleByStringLiteral {
+//    public typealias StringLiteralType = T.RawValue.StringLiteralType
+//
+//  public init(stringLiteral: StringLiteralType) {
+//    self.init(id: T.RawValue(stringLiteral: stringLiteral))
+//  }
+//}
+//
+//extension Recipient: ExpressibleByUnicodeScalarLiteral where T.RawValue: ExpressibleByUnicodeScalarLiteral {
+//    public typealias UnicodeScalarLiteralType = T.RawValue.UnicodeScalarLiteralType
+//
+//  public init(unicodeScalarLiteral: UnicodeScalarLiteralType) {
+//    self.init(id: T.RawValue(unicodeScalarLiteral: unicodeScalarLiteral))
+//  }
+//}

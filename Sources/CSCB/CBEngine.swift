@@ -7,8 +7,10 @@
 //
 
 import Foundation
+import Logging
 
 public enum WebSocketEvent {
+
     case connected([String: String])
     case disconnected(String, UInt16)
     case text(String)
@@ -26,6 +28,7 @@ public protocol EngineDelegate: AnyObject {
 }
 
 public enum FrameOpCode: UInt8 {
+
     case continueFrame = 0x0
     case textFrame = 0x1
     case binaryFrame = 0x2
@@ -38,6 +41,7 @@ public enum FrameOpCode: UInt8 {
 }
 
 public protocol Engine {
+    
     func register(delegate: EngineDelegate)
     func start(request: URLRequest)
     func stop(closeCode: UInt16)
@@ -50,6 +54,12 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
     private var task: URLSessionWebSocketTask?
     weak var delegate: EngineDelegate?
+    var logger: Logger?
+
+    public required init(logger: Logger) {
+
+        self.logger = logger
+    }
 
     public func register(delegate: EngineDelegate) {
         self.delegate = delegate
@@ -57,7 +67,8 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
     public func start(request: URLRequest) {
 
-        print(">>> wss engine start")
+        self.logger?.info("start: \(request.url)")
+
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
         task = session.webSocketTask(with: request)
         doRead()
@@ -66,36 +77,36 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
     public func disconnect() {
 
+        self.logger?.info("disconnect")
         task?.cancel(with: URLSessionWebSocketTask.CloseCode.normalClosure, reason: nil)
     }
 
     public func stop(closeCode: UInt16) {
 
-        print(">>> wss engine stop")
+        print("stop")
         let closeCode = URLSessionWebSocketTask.CloseCode(rawValue: Int(closeCode)) ?? .normalClosure
         task?.cancel(with: closeCode, reason: nil)
     }
 
     public func forceStop() {
 
-        print(">>> wss engine force stop")
+        print("forceStop")
         stop(closeCode: UInt16(URLSessionWebSocketTask.CloseCode.abnormalClosure.rawValue))
     }
 
     public func write(string: String, completion: (() -> ())?) {
 
-        print(">>> wss engine write string")
+        self.logger?.info("write: \(string)")
 
         task?.send(.string(string), completionHandler: { error in
 
-            print(">>> wss engine write string response: \(error)")
             completion?()
         })
     }
 
     public func write(data: Data, opcode: FrameOpCode, completion: (() -> ())?) {
 
-        print(">>> wss engine write data")
+        self.logger?.info("write: \(data)")
 
         switch opcode {
 
@@ -103,7 +114,7 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
                 task?.send(.data(data), completionHandler: { error in
 
-                    print(">>> wss engine write data response: \(error)")
+                    print("engine write data response: \(error)")
                     completion?()
                 })
 
@@ -175,11 +186,13 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 }
 
 public enum HTTPUpgradeError: Error {
+
     case notAnUpgrade(Int)
     case invalidData
 }
 
 public struct CBHTTPWSHeader {
+
     static let upgradeName        = "Upgrade"
     static let upgradeValue       = "websocket"
     static let hostName           = "Host"
@@ -200,6 +213,7 @@ public struct CBHTTPWSHeader {
     /// - Parameter supportsCompression: set if the client support text compression.
     /// - Parameter secKeyName: the security key to use in the WebSocket request. https://tools.ietf.org/html/rfc6455#section-1.3
     /// - returns: A URLRequest request to be converted to data and sent to the server.
+    ///
     public static func createUpgrade(request: URLRequest,
                                      supportsCompression: Bool,
                                      secKeyValue: String) -> URLRequest {
@@ -209,6 +223,7 @@ public struct CBHTTPWSHeader {
         }
 
         var req = request
+
         if request.value(forHTTPHeaderField: CBHTTPWSHeader.originName) == nil {
             var origin = url.absoluteString
             if let hostUrl = URL(string: "/", relativeTo: url) {
@@ -276,6 +291,7 @@ public struct CBURLParts {
 }
 
 public extension URL {
+
     /// isTLSScheme returns true if the scheme is https or wss
     var isTLSScheme: Bool {
         guard let scheme = self.scheme else {
