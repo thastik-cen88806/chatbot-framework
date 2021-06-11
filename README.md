@@ -1,12 +1,14 @@
 # chatbot-framework
 
 [Messaging Router chatbot platform](https://ceskasporitelna.github.io/messaging-router-docs/)
+
 [Facebook Messenger Platform](https://developers.facebook.com/docs/messenger-platform)
+
 [Swagger Editor](https://editor.swagger.io/)
 
-• framework consists of two <`CSCBExternal`, `CSCB`> library targets that are importable in your project, and two <`ChatbotDemo`, `ChatbotMockServer`> executable targets for sample client script and mock server that serve for demonstration and integration testing purposes 
+• framework consists of  `CSCB` library target that is importable in your project, and two <`ChatbotDemo`, `ChatbotMockServer`> executable targets for sample client script and mock server that serve for demonstration and integration testing purposes 
 
-• API communication objects are exported via `CSCBTypes` target which gets shared between `CSCBExternal`, `CSCB` and `ChatbotMockServer` to ensure compatibility and code reuse
+• API communication objects are exported via `CSCBTypes` target which gets shared between  `CSCB` and `ChatbotMockServer` to ensure compatibility and code reuse
 
 ## CI/CD Tools
 
