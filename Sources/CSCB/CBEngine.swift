@@ -67,7 +67,7 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
     public func start(request: URLRequest) {
 
-        self.logger?.info("start: \(request.url)")
+        self.logger?.info("start: \(request.url?.absoluteString ?? "NA")")
 
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
         task = session.webSocketTask(with: request)
@@ -112,11 +112,9 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
             case .binaryFrame:
 
-                task?.send(.data(data), completionHandler: { error in
-
-                    print("engine write data response: \(error)")
+                task?.send(.data(data)) { error in
                     completion?()
-                })
+                }
 
             case .textFrame:
 
@@ -125,9 +123,9 @@ public class CBEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSo
 
             case .ping:
 
-                task?.sendPing(pongReceiveHandler: { error in
+                task?.sendPing { error in
                     completion?()
-                })
+                }
 
             default: break //unsupported
         }
@@ -218,27 +216,37 @@ public struct CBHTTPWSHeader {
                                      supportsCompression: Bool,
                                      secKeyValue: String) -> URLRequest {
 
-        guard let url = request.url, let parts = url.CBgetParts() else {
+        guard let url = request.url,
+              let parts = url.CBgetParts() else {
+
             return request
         }
 
         var req = request
 
         if request.value(forHTTPHeaderField: CBHTTPWSHeader.originName) == nil {
+
             var origin = url.absoluteString
+
             if let hostUrl = URL(string: "/", relativeTo: url) {
+
                 origin = hostUrl.absoluteString
                 origin.remove(at: origin.index(before: origin.endIndex))
             }
+
             req.setValue(origin, forHTTPHeaderField: CBHTTPWSHeader.originName)
         }
+
         req.setValue(CBHTTPWSHeader.upgradeValue, forHTTPHeaderField: CBHTTPWSHeader.upgradeName)
         req.setValue(CBHTTPWSHeader.connectionValue, forHTTPHeaderField: CBHTTPWSHeader.connectionName)
         req.setValue(CBHTTPWSHeader.versionValue, forHTTPHeaderField: CBHTTPWSHeader.versionName)
         req.setValue(secKeyValue, forHTTPHeaderField: CBHTTPWSHeader.keyName)
 
-        if let cookies = HTTPCookieStorage.shared.cookies(for: url), !cookies.isEmpty {
+        if let cookies = HTTPCookieStorage.shared.cookies(for: url),
+           !cookies.isEmpty {
+
             let headers = HTTPCookie.requestHeaderFields(with: cookies)
+
             for (key, val) in headers {
                 req.setValue(val, forHTTPHeaderField: key)
             }
@@ -252,14 +260,10 @@ public struct CBHTTPWSHeader {
         req.setValue(hostValue, forHTTPHeaderField: CBHTTPWSHeader.hostName)
         return req
     }
-
-    // generateWebSocketKey 16 random characters between a-z and return them as a base64 string
-    public static func generateWebSocketKey() -> String {
-        return Data((0..<16).map { _ in UInt8.random(in: 97...122) }).base64EncodedString()
-    }
 }
 
 public enum HTTPEvent {
+
     case success([String: String])
     case failure(Error)
 }
@@ -269,22 +273,24 @@ public protocol HTTPHandlerDelegate: AnyObject {
 }
 
 public protocol HTTPHandler {
+
     func register(delegate: HTTPHandlerDelegate)
     func convert(request: URLRequest) -> Data
     func parse(data: Data) -> Int
 }
 
-public protocol HTTPServerDelegate: AnyObject {
-    func didReceive(event: HTTPEvent)
-}
-
-public protocol HTTPServerHandler {
-    func register(delegate: HTTPServerDelegate)
-    func parse(data: Data)
-    func createResponse(headers: [String: String]) -> Data
-}
+//public protocol HTTPServerDelegate: AnyObject {
+//    func didReceive(event: HTTPEvent)
+//}
+//
+//public protocol HTTPServerHandler {
+//    func register(delegate: HTTPServerDelegate)
+//    func parse(data: Data)
+//    func createResponse(headers: [String: String]) -> Data
+//}
 
 public struct CBURLParts {
+
     let port: Int
     let host: String
     let isTLS: Bool
@@ -293,27 +299,36 @@ public struct CBURLParts {
 public extension URL {
 
     /// isTLSScheme returns true if the scheme is https or wss
+    ///
     var isTLSScheme: Bool {
+
         guard let scheme = self.scheme else {
             return false
         }
+
         return CBHTTPWSHeader.defaultSSLSchemes.contains(scheme)
     }
 
-    /// getParts pulls host and port from the url.
+    /// getParts pulls host and port from the url
+    ///
     func CBgetParts() -> CBURLParts? {
+
         guard let host = self.host else {
             return nil // no host, this isn't a valid url
         }
+
         let isTLS = isTLSScheme
         var port = self.port ?? 0
+
         if self.port == nil {
+
             if isTLS {
                 port = 443
             } else {
                 port = 80
             }
         }
+
         return CBURLParts(port: port, host: host, isTLS: isTLS)
     }
 }

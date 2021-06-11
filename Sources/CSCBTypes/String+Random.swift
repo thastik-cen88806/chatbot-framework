@@ -8,73 +8,42 @@
 
 import Foundation
 
-/// Credits: https://github.com/Flinesoft/HandySwift/tree/main/Sources/HandySwift
-///
 extension String {
 
-    /// Returns a random character from the String.
+    /// randomly generated alphaNumeric `String` of size 7
     ///
-    /// - Returns: A random character from the String or `nil` if empty.
-    ///
-    public var sample: Character? {
-
-        isEmpty ? nil : self[index(startIndex, offsetBy: Int(randomBelow: count)!)]
+    public static var msgID: String {
+        String(randomWithLength: 7, allowedCharacters: .alphaNumeric)
     }
 
-    /// Returns a given number of random characters from the String
+    /// base64 from a randomly generated alphabetic `String` of size 16
     ///
-    /// - Parameters:
-    ///   - size: The number of random characters wanted.
-    /// - Returns: A String with the given number of random characters or `nil` if empty.
-    ///
-    @inlinable
-    public func sample(size: Int) -> String? {
-
-        guard !isEmpty else { return nil }
-
-        var sampleElements = String()
-        size.times { sampleElements.append(sample!) }
-
-        return sampleElements
+    public static var socketKey: String {
+        Data((0..<16).map { _ in UInt8.random(in: 97...122) }).base64EncodedString()
     }
 
-    /// Create new instance with random alphanumeric String of given length
+    /// The type of allowed characters in random generated `String`
     ///
-    /// - Parameters:
-    ///   - randommWithLength:      The length of the random String to create.
-    ///
-    public init(randomWithLength length: Int) {
+    private enum AllowedCharacters: String {
 
-        let allowedCharsString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        case alphabetic = "abcdefghijklmnopqrstuvwxyz"
 
-        self.init(allowedCharsString.sample(size: length)!)
-    }
-}
-
-extension Int {
-
-    /// Initializes a new `Int ` instance with a random value below a given `Int`.
-    ///
-    /// - Parameters:
-    ///   - randomBelow: The upper bound value to create a random value with.
-    ///
-    public init?(randomBelow upperLimit: Int) {
-
-        guard upperLimit > 0 else { return nil }
-
-        self = .random(in: 0 ..< upperLimit)
+        case alphaNumeric = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     }
 
-    /// Runs the code passed as a closure the specified number of times.
+    /// create random `String` instance of given length from set of specified `AllowedCharacters`
+    ///
+    /// - Note: the force unwrap is safe in this case since it returns nil only
+    ///         in case when the `Array` of characters is empty. this scenario will
+    ///         not occur since we get the elements from `AllowedCharacters`
     ///
     /// - Parameters:
-    ///   - closure: The code to be run multiple times.
+    ///   - randommWithLength: The length of the random String to create.
+    ///   - allowedCharacters: The allowed characters type, see enum `AllowedCharacters`.
     ///
-    @inlinable
-    public func times(_ closure: () throws -> Void) rethrows {
+    private init(randomWithLength length: Int,
+                allowedCharacters: AllowedCharacters) {
 
-        guard self > 0 else { return }
-
-        for _ in 0 ..< self { try closure() }
+        self.init((0..<length).map { _ in allowedCharacters.rawValue.randomElement()! })
     }
 }

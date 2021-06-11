@@ -83,7 +83,7 @@ public struct Start: ChatMessage, Codable {
                 sender: Sender<Tagged<Persona, String>>,
                 language: String? = "cs") {
 
-        let msgID = "\(sender.id.rawValue).\(recipient.id.rawValue).\(String(randomWithLength: 7)).\(String(randomWithLength: 7))"
+        let msgID = "\(sender.id.rawValue).\(recipient.id.rawValue).\(String.msgID).\(String.msgID)"
         let postback = Postback(payload: "start", appId: nil)
         let cntx = SharedContext(auth: nil, lang: language, viewport: nil, webPage: nil, webUserAgent: UserAgent.agent)
         let timestamp = Tagged<Stamp, Int64>(rawValue: Date.currentTimeStamp)
