@@ -11,7 +11,7 @@ import Tagged
 
 /// Init object used to start the communication
 ///
-public struct Init: ChatMessage, Codable {
+public struct Init: Codable {
 
     // MARK: - TypeAliases
 

@@ -19,14 +19,7 @@ import Tagged
 ///    "id":"<ID>"
 ///  },
 ///  "message":{
-///    "text": "Here is a quick reply!",
-///    "quick_replies":[
-///      {
-///        "content_type":"text",
-///        "title":"Search",
-///        "payload":"<POSTBACK_PAYLOAD>"
-///      }
-///    ]
+///    "text": "Here is a quick reply!"
 ///  }
 ///}
 ///````
@@ -44,10 +37,10 @@ public struct TextMessageEvent<R: TaggedType, S: TaggedType>: Codable where R: C
         case recipient
         case sender
         case timestamp
-        case personaId = "persona_id"
-        case ownerAppId = "owner_app_id"
-        case persona
         case message
+        case appID = "app_id"
+        case msgType = "messaging_type"
+        case msgID = "mid"
     }
 
     // MARK: - Properties
@@ -57,9 +50,9 @@ public struct TextMessageEvent<R: TaggedType, S: TaggedType>: Codable where R: C
 
     var sender: Sender<S>?
     var timestamp: Timestamp?
-    var personaId: String?
-    var ownerAppId: String?
-    var persona: Persona?
+    var appID: String?
+    var msgType: String?
+    var msgID: String?
 
     // MARK: - Init
 
@@ -79,17 +72,35 @@ public struct TextMessageEvent<R: TaggedType, S: TaggedType>: Codable where R: C
                 message: TextMessage,
                 sender: Sender<S>?,
                 timestamp: Timestamp?,
-                personaId: String?,
-                ownerAppId: String?,
-                persona: Persona?) {
+                appID: String?,
+                msgType: String?,
+                msgID: String?) {
 
         self.recipient = recipient
         self.message = message
         
         self.sender = sender
         self.timestamp = timestamp
-        self.personaId = personaId
-        self.ownerAppId = ownerAppId
-        self.persona = persona
+        self.appID = appID
+        self.msgType = msgType
+        self.msgID = msgID
+    }
+}
+
+// MARK: - Debug
+
+extension TextMessageEvent: CustomDebugStringConvertible {
+
+    public var debugDescription: String {
+
+        return "\(self.timestamp ?? 0) \(self.message.text)"
+    }
+}
+
+extension TextMessageEvent: CustomStringConvertible {
+
+    public var description: String {
+
+        return self.debugDescription
     }
 }

@@ -26,7 +26,7 @@ public struct QuickReply: Codable {
 
     enum CodingKeys: String, CodingKey {
 
-        case contentType
+        case contentType = "content_type"
         case title
         case payload
     }
@@ -49,11 +49,29 @@ public struct QuickReply: Codable {
     ///
     public init(contentType: String,
                 title: String,
-                payload: String) {
+                payload: String?) {
 
         self.contentType = contentType
         self.title = title
-        
+
         self.payload = payload
+    }
+}
+
+// MARK: - Debug
+
+extension QuickReply: CustomDebugStringConvertible {
+
+    public var debugDescription: String {
+
+        return "\(self.title)"
+    }
+}
+
+extension QuickReply: CustomStringConvertible {
+
+    public var description: String {
+
+        return self.debugDescription
     }
 }

@@ -35,12 +35,12 @@ public struct TypingEvent<R: TaggedType, S: TaggedType>: Codable where R: Codabl
 
     enum CodingKeys: String, CodingKey {
 
+        case appID = "app_id"
+        case msgType = "messaging_type"
+        case msgID = "mid"
         case recipient
         case sender
         case timestamp
-        case personaId = "persona_id"
-        case ownerAppId = "owner_app_id"
-        case persona
         case action = "sender_action"
     }
 
@@ -51,9 +51,9 @@ public struct TypingEvent<R: TaggedType, S: TaggedType>: Codable where R: Codabl
 
     var sender: Sender<S>?
     var timestamp: Timestamp?
-    var personaId: String?
-    var ownerAppId: String?
-    var persona: Persona?
+    var msgID: String?
+    var msgType: String?
+    var appID: String?
 
     // MARK: - Init
 
@@ -73,17 +73,35 @@ public struct TypingEvent<R: TaggedType, S: TaggedType>: Codable where R: Codabl
                 action: TypingType,
                 sender: Sender<S>?,
                 timestamp: Timestamp?,
-                personaId: String?,
-                ownerAppId: String?,
-                persona: Persona?) {
+                msgID: String?,
+                msgType: String?,
+                appID: String?) {
 
         self.recipient = recipient
         self.action = action
 
         self.sender = sender
         self.timestamp = timestamp
-        self.personaId = personaId
-        self.ownerAppId = ownerAppId
-        self.persona = persona
+        self.msgID = msgID
+        self.msgType = msgType
+        self.appID = appID
+    }
+}
+
+// MARK: - Debug
+
+extension TypingEvent: CustomDebugStringConvertible {
+
+    public var debugDescription: String {
+
+        return "\(self.timestamp ?? 0) \(self.action)"
+    }
+}
+
+extension TypingEvent: CustomStringConvertible {
+
+    public var description: String {
+
+        return self.debugDescription
     }
 }

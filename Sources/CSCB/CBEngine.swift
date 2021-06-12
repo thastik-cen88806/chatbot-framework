@@ -11,43 +11,15 @@ import CSCBTypes
 import Foundation
 import Logging
 
-public enum WebSocketEvent {
-
-    case connected
-    case disconnected(String, UInt16)
-    case text(String)
-    case binary(Data)
-    case pong(Data?)
-    case ping(Data?)
-    case error(Error?)
-    case viabilityChanged(Bool)
-    case reconnectSuggested(Bool)
-    case cancelled
-}
-
-/// type of websocket frame to be sent
-///
-/// Note: - ranges 3-7 & B-F are reserved
-///
-public enum FrameOpCode: UInt8 {
-
-    case continueFrame = 0x0
-    case textFrame = 0x1
-    case binaryFrame = 0x2
-    case connectionClose = 0x8
-    case ping = 0x9
-    case pong = 0xA
-    case unknown = 100
-}
-
 public class CBEngine: NSObject {
 
     // MARK: - Properties
 
-    public let msgPublisher = PassthroughSubject<WebSocketEvent, CBError>()
+    public let eventPublisher = PassthroughSubject<WebSocketEvent, CBError>()
+    public let msgPublisher = PassthroughSubject<ChatMessage, CBError>()
 
     private var task: URLSessionWebSocketTask?
-    private var logger: Logger?
+    private let logger: Logger
 
     // MARK: - Init
 
@@ -60,7 +32,7 @@ public class CBEngine: NSObject {
 
     public func start(request: URLRequest) {
 
-        self.logger?.info("start: \(request.url?.absoluteString ?? "NA")")
+        self.logger.info("start: \(request.url?.absoluteString ?? "NA")")
 
         let session = URLSession(configuration: .default,
                                  delegate: self,
@@ -73,20 +45,20 @@ public class CBEngine: NSObject {
 
     public func disconnect() {
 
-        self.logger?.info("disconnect")
+        self.logger.info("disconnect")
         task?.cancel(with: URLSessionWebSocketTask.CloseCode.normalClosure, reason: nil)
     }
 
     public func stop(closeCode: UInt16) {
 
-        self.logger?.info("stop")
+        self.logger.info("stop")
         let closeCode = URLSessionWebSocketTask.CloseCode(rawValue: Int(closeCode)) ?? .normalClosure
         task?.cancel(with: closeCode, reason: nil)
     }
 
     public func forceStop() {
 
-        self.logger?.info("forceStop")
+        self.logger.info("forceStop")
         stop(closeCode: UInt16(URLSessionWebSocketTask.CloseCode.abnormalClosure.rawValue))
     }
 
@@ -96,28 +68,30 @@ public class CBEngine: NSObject {
 
             case .binaryFrame:
 
-                self.logger?.info("write: \(data)")
+                self.logger.info("write: \(data)")
 
                 task?.send(.data(data)) { error in
 
                     guard let error = error else { return }
-                    print(">>> ERROR binFrame \(error)")
+
+                    self.logger.error("binFrame \(error)")
                 }
 
             case .textFrame:
 
                 guard let text = String(data: data, encoding: .utf8) else {
 
-                    print(">>> ERROR write utf8 decode")
+                    self.logger.error("textFrame utf8 decode")
                     return
                 }
 
-                self.logger?.info("write: \(text)")
+                self.logger.info("write: \(text)")
 
                 task?.send(.string(text)) { error in
 
                     guard let error = error else { return }
-                    print(">>> ERROR write \(error)")
+
+                    self.logger.error("textFrame \(error)")
                 }
 
 
@@ -126,10 +100,11 @@ public class CBEngine: NSObject {
                 task?.sendPing { error in
 
                     guard let error = error else { return }
-                    print(">>> ERROR ping \(error)")
+
+                    self.logger.error("ping \(error)")
                 }
 
-            default: print(">>> UNHANDLED")
+            default: self.logger.notice("opcode unhandled: \(opcode)")
         }
     }
 
@@ -143,14 +118,17 @@ public class CBEngine: NSObject {
 
                     switch message {
 
-                        case let .string(string): self?.msgPublisher.send(.text(string)); self?.decodeMessage(msg: string)
+                        case let .string(string): self?.decodeMessage(msg: string)
 
-                        case let .data(data): self?.msgPublisher.send(.binary(data))
+                        case let .data(data): self?.eventPublisher.send(.binary(data))
 
-                        @unknown default: print(">>> UNHANDLED")
+                        @unknown default: self?.logger.notice("message unhandled: \(message)")
                     }
 
-                case let .failure(error): self?.msgPublisher.send(.error(error))
+                case let .failure(error):
+
+                    self?.logger.error("message \(error)")
+                    self?.eventPublisher.send(.error(error))
             }
 
             self?.doRead()
@@ -159,8 +137,9 @@ public class CBEngine: NSObject {
 
     private func decodeMessage(msg: String) {
 
-        if let obj = try? JSONDecoder().decode(Object.self, from: msg.data(using: .utf8) ?? Data()) {
-            print("\n\n\n\n\n=============================\n\n\n\n\(obj)")
+        if let obj = try? JSONDecoder().decode(ChatMessage.self, from: msg.data(using: .utf8) ?? Data()) {
+
+            self.msgPublisher.send(obj)
         }
     }
 }
@@ -171,7 +150,7 @@ extension CBEngine: URLSessionWebSocketDelegate {
                            webSocketTask: URLSessionWebSocketTask,
                            didOpenWithProtocol protocol: String?) {
 
-        self.msgPublisher.send(.connected)
+        self.eventPublisher.send(.connected)
     }
 
     public func urlSession(_ session: URLSession,
@@ -185,6 +164,6 @@ extension CBEngine: URLSessionWebSocketDelegate {
             r = String(data: d, encoding: .utf8) ?? ""
         }
 
-        self.msgPublisher.send(.disconnected(r, UInt16(closeCode.rawValue)))
+        self.eventPublisher.send(.disconnected(r, UInt16(closeCode.rawValue)))
     }
 }

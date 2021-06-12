@@ -49,7 +49,7 @@ import Tagged
 /// }
 /// ````
 ///
-public struct Start: ChatMessage, Codable {
+public struct Start: Codable {
 
     // MARK: - TypeAliases
 

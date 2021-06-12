@@ -28,6 +28,7 @@ public final class CBFramework {
 
     var cancellable: AnyCancellable?
     var cancellable2: AnyCancellable?
+    var cancellable3: AnyCancellable?
 
     private let encoder = JSONEncoder()
     private let logger = Logger(label: "websocka")
@@ -70,7 +71,7 @@ public final class CBFramework {
 
         guard let url = URL(string: self.url) else {
 
-            print(">>> eeeeeeeeeee")
+            self.logger.error("invalidUri: \(self.url)")
             throw CBError.invalidUri(url: self.url)
         }
 
@@ -83,41 +84,46 @@ public final class CBFramework {
                                             for: URL(string: "wss://webchat.csast.csas.cz/"),
                                             mainDocumentURL: nil)
 
-        for cookie in self.cookies! {
+        for cookie in self.cookies ?? [] {
             self.logger.info("cookie: \(cookie.name): \(cookie.value)")
         }
 
         self.logger.info("request: \(url.absoluteString)")
         socket = CBEngine(logger: self.logger)
 
-        self.cancellable2 = self.socket?.msgPublisher.sink(receiveCompletion: { _ in
+        self.cancellable2 = self.socket?.eventPublisher.sink(receiveCompletion: { _ in
             print(">>> finished")
         }, receiveValue: { [weak self] event in
-
-            self?.logger.info("\n---------------\n\(event)")
 
             switch event {
 
                 case .connected: self?.startConversation()
 
-                case .disconnected(_, _): print("disconnected")
+                case .disconnected(_, _): self?.logger.info("disconnected")
 
-                case .text(_): print("text")
+                case .text(_): break
 
-                case .binary(_): print("binary")
+                case .binary(_): self?.logger.info("binary")
 
-                case .pong(_): print("pong")
+                case .pong(_): self?.logger.info("pong")
 
-                case .ping(_): print("ping")
+                case .ping(_): self?.logger.info("ping")
 
-                case .error(_): print("error")
+                case .error(_): self?.logger.info("error")
 
-                case .viabilityChanged(_): print("visibility")
+                case .viabilityChanged(_): self?.logger.info("visibility")
 
-                case .reconnectSuggested(_): print("reconnect")
+                case .reconnectSuggested(_): self?.logger.info("reconnect")
 
-                case .cancelled: print("cancel")
+                case .cancelled: self?.logger.info("cancel")
             }
+        })
+
+        self.cancellable3 = self.socket?.msgPublisher.sink(receiveCompletion: { _ in
+            print(">>> finished")
+        }, receiveValue: { msg in
+
+            print(msg)
         })
 
         socket?.start(request: request)
@@ -128,7 +134,9 @@ public final class CBFramework {
         let channelID: Tagged<Channel, String> = "e5932cce-0705-4261-9194-3bd482aba287"
 
         guard let senderID = self.token?.userID else {
-            fatalError(">>> failed senderID")
+
+            self.logger.error("startConversation senderID: \(self.token?.userID ?? "N/A")")
+            return
         }
 
         let sender = Sender(id: senderID)
@@ -137,8 +145,8 @@ public final class CBFramework {
         let json = Init(recipient: recipient, sender: sender)
         let start = Start(recipient: recipient, sender: sender)
 
-        try? self.send(json)
-        try? self.send(start)
+        try? self.send(.`init`(json))
+        try? self.send(.start(start))
     }
 
     func updateToken() {
@@ -167,12 +175,14 @@ public final class CBFramework {
 
             guard let data = data else {
 
+                self.logger.error("tokenZero .tokenZeroNoHTMLData")
                 self.tokenPublisher.send(completion: .failure(.tokenZeroNoHTMLData))
                 return
             }
 
             guard let html = String(data: data, encoding: .utf8) else {
 
+                self.logger.error("tokenZero .tokenZeroDataDecoding(data: \(data))")
                 self.tokenPublisher.send(completion: .failure(.tokenZeroDataDecoding(data: data)))
                 return
             }
@@ -181,6 +191,7 @@ public final class CBFramework {
 
             guard let token = try? html.decodeTokenZero() else {
 
+                self.logger.error("tokenZero .tokenZeroHTMLExtract(error: \(html)")
                 self.tokenPublisher.send(completion: .failure(.tokenZeroHTMLExtract(error: html)))
                 return
             }
@@ -198,7 +209,7 @@ public final class CBFramework {
 //        socket?.write(ping: data)
 //    }
 
-    public func send<T>(_ msg: T) throws where T: ChatMessage {
+    public func send(_ msg: ChatMessage) throws {
 
         let jsonData = try self.encoder.encode(msg)
 
