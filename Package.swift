@@ -66,9 +66,9 @@ let package = Package(
             "pre-push": "swift test",
             "pre-commit": [
                 "swift run swiftlint autocorrect --path Sources/",
-                "swift test",
+//                "swift test",
 //                "swift run swiftformat .",
-                "git add .",
+//                "git add .",
             ],
         ],
     ]).write()

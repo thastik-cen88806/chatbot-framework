@@ -93,16 +93,15 @@ extension Data {
     ///
     ///let x = try? string
     ///    .replacingOccurrences(of: jsonWhiteSpace, with: "", options: .regularExpression)
-    ///    .match(regex: jsonPattern)?
+    ///    .match(regex: jsonPattern)
     ///    .data(using: .utf8)?
     ///    .decode(to: TokenZero.self)
-    ///    .get()
     ///````
     /// - Parameter to: object to which the underlining data will be decoded (currently `TokenZero`)
     /// - Throws: `CBError.tokenZeroDecode` if decoding json value fails
     /// - Returns: object specified as parameter (currently `TokenZero`)
     ///
-    fileprivate func decode<T: Codable>(to: T.Type) throws -> T {
+    func decode<T: Codable>(to: T.Type) throws -> T {
 
         do {
 

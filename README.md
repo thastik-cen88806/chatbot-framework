@@ -1,14 +1,8 @@
 # chatbot-framework
 
-[Messaging Router chatbot platform](https://ceskasporitelna.github.io/messaging-router-docs/)
+• framework consists of  `CSCB` library target that you can import in your project, and two <`ChatbotDemo`, `ChatbotMockServer`> executable targets for sample client script and mock server that serve for demonstration and integration testing purposes. Additional concepts can be observed in included playgrounds that "should" work after you build the required imports for iOS platform. This is required since the playground is for iOS platform.
 
-[Facebook Messenger Platform](https://developers.facebook.com/docs/messenger-platform)
-
-[Swagger Editor](https://editor.swagger.io/)
-
-• framework consists of  `CSCB` library target that is importable in your project, and two <`ChatbotDemo`, `ChatbotMockServer`> executable targets for sample client script and mock server that serve for demonstration and integration testing purposes 
-
-• API communication objects are exported via `CSCBTypes` target which gets shared between  `CSCB` and `ChatbotMockServer` to ensure compatibility and code reuse
+• API communication objects are exported via `CSCBTypes` target which gets shared between  `CSCB`, `ChatbotMockServer` and `Playground` to ensure compatibility and code reuse
 
 ## CI/CD Tools
 
@@ -37,6 +31,7 @@
 [Brandon Kase - Strings Are Evil](https://www.youtube.com/watch?v=UTm5p96KlEc)
 
 [Tagged](https://www.pointfree.co/episodes/ep12-tagged)
+
 [swift-tagged](https://github.com/pointfreeco/swift-tagged)
 
 ## CSCB
@@ -54,3 +49,19 @@
 ## ChatbotTests
 
 • wishful thinking 4 now
+
+# Resources
+
+`CSIN\INET_DEVELOPERS` role under `Windows` system in `REDIM` is needed to be able to access internal Sporka repositories, additional requests should be delegated to `devtools@csas.cz`
+
+[Sporka webchat-ui](https://sdf.csin.cz/stash/projects/WCH/repos/webchat-ui/browse)
+
+[Sporka webchat](https://sdf.csin.cz/stash/projects/WCH/repos/webchat/browse)
+
+[Messaging Router chatbot platform](https://ceskasporitelna.github.io/messaging-router-docs/)
+
+[Facebook Messenger Platform](https://developers.facebook.com/docs/messenger-platform)
+
+[Swagger Editor](https://editor.swagger.io/)
+
+

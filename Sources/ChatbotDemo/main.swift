@@ -9,7 +9,6 @@
 import Foundation
 import CSCB
 import CSCBTypes
-import Tagged
 
 let sema = DispatchSemaphore(value: 0)
 
