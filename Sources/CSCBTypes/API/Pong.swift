@@ -19,7 +19,7 @@ import Foundation
 /// }
 ///````
 ///
-public struct Pong: Codable {
+public struct Pong: Codable, AutoEquatable {
 
     // MARK: - Types
 

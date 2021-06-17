@@ -11,7 +11,7 @@ import Tagged
 
 /// Identity of communication Entity
 ///
-public struct Identity: Codable {
+public struct Identity: Codable, AutoEquatable {
 
     // MARK: - TypeAliases
 

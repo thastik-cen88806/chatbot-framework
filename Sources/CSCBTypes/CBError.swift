@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum CBError: Error, AutoEquatable {
+public enum CBError: Error, AutoEquatable, AutoCaseName {
 
     case arrayElementsOverflow(text: String)
     case invalidUri(url: String)
@@ -24,3 +24,5 @@ public enum CBError: Error, AutoEquatable {
 }
 
 protocol AutoEquatable {}
+
+protocol AutoCaseName {}

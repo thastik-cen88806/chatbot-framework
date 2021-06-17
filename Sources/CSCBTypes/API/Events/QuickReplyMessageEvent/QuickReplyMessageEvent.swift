@@ -58,7 +58,7 @@ import Tagged
 ///}
 ///````
 ///
-public struct QuickReplyMessageEvent<R: TaggedType, S: TaggedType>: Codable where R: Codable, S: Codable, R.Tag: Identified, S.Tag: Identified {
+public struct QuickReplyMessageEvent<R: TaggedType, S: TaggedType>: Codable where R: Codable, S: Codable, R.Tag: Identified, S.Tag: Identified, R: Equatable, S: Equatable {
 
     // MARK: - TypeAliases
 
@@ -142,4 +142,21 @@ extension QuickReplyMessageEvent: CustomStringConvertible {
 
         return self.debugDescription
     }
+}
+
+// MARK: - Equatability
+
+extension QuickReplyMessageEvent: Equatable {}
+
+public func == <R, S>(lhs: QuickReplyMessageEvent<R, S>, rhs: QuickReplyMessageEvent<R, S>) -> Bool {
+
+    guard lhs.recipient == rhs.recipient,
+          lhs.message == rhs.message,
+          lhs.sender == rhs.sender,
+          lhs.timestamp == rhs.timestamp,
+          lhs.msgID == rhs.msgID,
+          lhs.msgType == rhs.msgType,
+          lhs.appID == rhs.appID else { return false }
+
+    return true
 }

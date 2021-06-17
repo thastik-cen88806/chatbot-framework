@@ -11,7 +11,7 @@ import Tagged
 
 /// Object hodling all types able to be converted to JSON and thus sendable by the framework
 ///
-public enum ChatMessage {
+public enum ChatMessage: AutoEquatable, AutoCaseName {
 
     // MARK: - TypeAliases
 

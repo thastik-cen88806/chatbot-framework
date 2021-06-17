@@ -49,7 +49,7 @@ import Tagged
 /// }
 /// ````
 ///
-public struct Start: Codable {
+public struct Start: Codable, AutoEquatable {
 
     // MARK: - TypeAliases
 

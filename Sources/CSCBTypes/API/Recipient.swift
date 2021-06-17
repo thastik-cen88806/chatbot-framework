@@ -11,7 +11,7 @@ import Tagged
 
 /// Recipient object
 ///
-public struct Recipient<T: TaggedType>: Codable where T: Codable, T.Tag: Identified {
+public struct Recipient<T: TaggedType>: Codable where T: Equatable, T: Codable, T.Tag: Identified {
 
     // MARK: - Types
 
@@ -34,6 +34,17 @@ public struct Recipient<T: TaggedType>: Codable where T: Codable, T.Tag: Identif
 
         self.id = id
     }
+}
+
+// MARK: - Equatability
+
+extension Recipient: Equatable {}
+
+public func == <T>(lhs: Recipient<T>, rhs: Recipient<T>) -> Bool {
+
+    guard lhs.id == rhs.id else { return false }
+
+    return true
 }
 
 //extension Recipient: ExpressibleByStringLiteral where T: Tagged, T.Tag == Channel, T.RawValue == String {

@@ -95,8 +95,8 @@ extension JPayload: CustomDebugStringConvertible {
 
     public var debugDescription: String {
 
-        return "type: \(self.type ?? "") "
-        + "bid: \(self.bid ?? "") "
+        return "type: \(self.type) "
+        + "bid: \(self.bid) "
         + "userID: \(self.userID ?? "") "
         + "channelID: \(self.channelID ?? "") "
         + "ignoreCookie: \(self.ignoreCookie)\n"

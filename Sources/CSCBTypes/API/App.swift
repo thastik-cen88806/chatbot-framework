@@ -11,7 +11,7 @@ import Tagged
 
 /// App
 ///
-public struct App: Codable {
+public struct App: Codable, AutoEquatable {
 
     // MARK: - TypeAliases
 

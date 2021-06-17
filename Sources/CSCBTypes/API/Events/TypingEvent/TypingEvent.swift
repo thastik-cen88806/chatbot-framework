@@ -25,7 +25,7 @@ import Tagged
 /// }
 ///````
 ///
-public struct TypingEvent<R: TaggedType, S: TaggedType>: Codable where R: Codable, S: Codable, R.Tag: Identified, S.Tag: Identified {
+public struct TypingEvent<R: TaggedType, S: TaggedType>: Codable where R: Codable, S: Codable, R.Tag: Identified, S.Tag: Identified, R: Equatable, S: Equatable {
 
     // MARK: - TypeAliases
 
@@ -104,4 +104,21 @@ extension TypingEvent: CustomStringConvertible {
 
         return self.debugDescription
     }
+}
+
+// MARK: - Equatability
+
+extension TypingEvent: Equatable {}
+
+public func == <R, S>(lhs: TypingEvent<R, S>, rhs: TypingEvent<R, S>) -> Bool {
+
+    guard lhs.recipient == rhs.recipient,
+          lhs.action == rhs.action,
+          lhs.sender == rhs.sender,
+          lhs.timestamp == rhs.timestamp,
+          lhs.msgID == rhs.msgID,
+          lhs.msgType == rhs.msgType,
+          lhs.appID == rhs.appID else { return false }
+
+    return true
 }

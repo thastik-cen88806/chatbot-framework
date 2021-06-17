@@ -10,7 +10,7 @@ import Foundation
 
 /// Persona
 ///
-public struct Persona: Codable, Identified {    
+public struct Persona: Codable, Identified, AutoEquatable {    
 
     // MARK: - Types
 

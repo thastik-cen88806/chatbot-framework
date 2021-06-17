@@ -28,7 +28,7 @@ import Foundation
 /// }
 ///````
 ///
-public struct WebPage: Codable {
+public struct WebPage: Codable, AutoEquatable {
 
     // MARK: - Types
 

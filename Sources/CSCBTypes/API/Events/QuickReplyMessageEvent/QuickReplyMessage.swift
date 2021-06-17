@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct QuickReplyMessage: Codable {
+public struct QuickReplyMessage: Codable, AutoEquatable {
 
     // MARK: - Types
 

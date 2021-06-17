@@ -10,7 +10,7 @@ import Foundation
 
 /// Channel Payload Object
 ///
-public struct ChannelPayload: Codable {
+public struct ChannelPayload: Codable, AutoEquatable {
 
     // MARK: - Types
 

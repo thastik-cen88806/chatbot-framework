@@ -10,7 +10,7 @@ import Foundation
 
 /// Sender object
 ///
-public struct Sender<T: TaggedType>: Codable where T: Codable, T.Tag: Identified {
+public struct Sender<T: TaggedType>: Codable where T: Equatable, T: Codable, T.Tag: Identified {
 
     // MARK: - Types
 
@@ -33,4 +33,15 @@ public struct Sender<T: TaggedType>: Codable where T: Codable, T.Tag: Identified
 
         self.id = id
     }
+}
+
+// MARK: - Equatability
+
+extension Sender: Equatable {}
+
+public func == <T>(lhs: Sender<T>, rhs: Sender<T>) -> Bool {
+
+    guard lhs.id == rhs.id else { return false }
+
+    return true
 }

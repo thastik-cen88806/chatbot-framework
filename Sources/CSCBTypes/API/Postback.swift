@@ -9,7 +9,7 @@
 import Foundation
 import Tagged
 
-public struct Postback: Codable {
+public struct Postback: Codable, AutoEquatable {
 
     // MARK: - TypeAliases
 

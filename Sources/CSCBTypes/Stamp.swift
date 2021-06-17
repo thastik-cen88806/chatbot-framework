@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Stamp {
+public struct Stamp: AutoEquatable {
 
     // MARK: - Properties
 

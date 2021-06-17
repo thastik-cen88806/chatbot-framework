@@ -32,9 +32,7 @@ final class ChatMessageTests: XCTestCase {
 
             let objects = try self.decodeResources()
 
-            XCTAssertTrue(objects.contains(where: { obj in
-                obj.Type == .quickReply
-            }), "there should be exactly 2 elements parsed from json directory")
+            XCTAssertTrue(objects.contains(where: { $0.caseName == .quickReply }), "there should be `.quickReply` object parsed from json directory")
 
         } catch {
             XCTFail("we should be able to access the test data for json parsing")

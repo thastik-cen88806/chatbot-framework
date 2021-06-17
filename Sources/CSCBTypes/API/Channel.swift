@@ -11,7 +11,7 @@ import Tagged
 
 /// Channel
 ///
-public struct Channel: Identified, Codable {
+public struct Channel: Identified, Codable, AutoEquatable {
 
     // MARK: - TypeAliases
 

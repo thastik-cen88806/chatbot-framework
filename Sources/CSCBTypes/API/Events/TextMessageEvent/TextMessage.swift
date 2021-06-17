@@ -18,7 +18,7 @@ import Foundation
 ///  }
 ///````
 ///
-public struct TextMessage: Encodable {
+public struct TextMessage: Encodable, AutoEquatable {
 
     // MARK: - Properties
 

@@ -20,7 +20,7 @@ import Foundation
 ///}
 ///````
 ///
-public struct QuickReply: Codable {
+public struct QuickReply: Codable, AutoEquatable {
 
     // MARK: - Types
 
