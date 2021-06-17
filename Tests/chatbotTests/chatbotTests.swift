@@ -1,7 +1,15 @@
+///
+///  ChatbotTests
+///  ChatbotTests
+///
+///  Created by ha100 on 05/20/2021.
+///  Copyright © 2021 Ceska sporitelna. All rights reserved.
+///
+
     import XCTest
     @testable import CSCBTypes
 
-    final class chatbotTests: XCTestCase {
+    final class ChatbotTests: XCTestCase {
 
         let sut = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoidSIsImJpZCI6IjRuZENTWkFYY2REIiwidWlkIjoiM1dqckJGMzF5RGxFIiwiY2lkIjoiZTU5MzJjY2UtMDcwNS00MjYxLTkxOTQtM2JkNDgyYWJhMjg3IiwiaWdub3JlQnJvd3NlckNvb2tpZSI6ZmFsc2UsImlhdCI6MTYyMjYzMDAzMywiZXhwIjoxNjIyNjMzNjMzfQ.TH11j16zDKZiItP_TwA2AjJlCyAuNXo69qRbIkfSZ1k"
 

@@ -36,7 +36,9 @@ let targets: [Target] = [
                 .unsafeFlags(["-cross-module-optimization"], .when(configuration: .release))
             ]
     ),
-    .testTarget(name: "ChatbotTests", dependencies: ["CSCBTypes"])
+    .testTarget(name: "ChatbotTests",
+                dependencies: ["CSCBTypes"],
+                resources: [.copy("Resources")])
 ]
 
 let package = Package(
