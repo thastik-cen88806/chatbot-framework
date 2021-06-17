@@ -25,6 +25,8 @@ extension CBError {
 
         case tokenZeroNoHTMLData
 
+        case tokenJWTMissingExpiration
+
         case tokenJWTExpired
 
         case regexFormat
@@ -52,6 +54,8 @@ extension CBError {
             case .tokenZeroDataDecoding: return .tokenZeroDataDecoding
 
             case .tokenZeroNoHTMLData: return .tokenZeroNoHTMLData
+
+            case .tokenJWTMissingExpiration: return .tokenJWTMissingExpiration
 
             case .tokenJWTExpired: return .tokenJWTExpired
 

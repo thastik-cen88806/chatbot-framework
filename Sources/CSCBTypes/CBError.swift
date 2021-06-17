@@ -18,6 +18,7 @@ public enum CBError: Error, AutoEquatable, AutoCaseName {
     case tokenZeroHTMLExtract(error: String)
     case tokenZeroDataDecoding(data: Data)
     case tokenZeroNoHTMLData
+    case tokenJWTMissingExpiration
     case tokenJWTExpired
     case regexFormat(text: String)
     case regexNoMatch(text: String)

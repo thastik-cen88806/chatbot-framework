@@ -11,6 +11,6 @@ import Foundation
 extension Date {
 
     public static var currentTimeStamp: Int64 {
-        return Int64(Date().timeIntervalSince1970 * 1000)
+        return Int64(Date().timeIntervalSince1970)
     }
 }

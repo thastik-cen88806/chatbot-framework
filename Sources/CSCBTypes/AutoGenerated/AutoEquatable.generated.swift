@@ -96,6 +96,9 @@ public func == (lhs: CBError, rhs: CBError) -> Bool {
         case (.tokenZeroNoHTMLData, .tokenZeroNoHTMLData):
             return true
 
+        case (.tokenJWTMissingExpiration, .tokenJWTMissingExpiration):
+            return true
+
         case (.tokenJWTExpired, .tokenJWTExpired):
             return true
 

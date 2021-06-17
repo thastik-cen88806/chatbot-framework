@@ -78,7 +78,7 @@ public struct JPayload: JWTPayload, Equatable {
     public func verify(using signer: JWTSigner) throws {
 
         guard let expiry = self.expiration else {
-            return
+            throw CBError.tokenJWTMissingExpiration
         }
 
         do {
@@ -99,9 +99,9 @@ extension JPayload: CustomDebugStringConvertible {
         + "bid: \(self.bid) "
         + "userID: \(self.userID ?? "") "
         + "channelID: \(self.channelID ?? "") "
-        + "ignoreCookie: \(self.ignoreCookie)\n"
-        + "           issuedAt: \(self.issuedAt) "
-        + "expiration: \(self.expiration) "
+            + "ignoreCookie: \(self.ignoreCookie?.value ?? false)\n"
+            + "           issuedAt: \(self.issuedAt.value) "
+            + "expiration: \(self.expiration?.value ?? Date()) "
     }
 }
 

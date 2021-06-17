@@ -35,6 +35,11 @@ extension ChatMessage: Decodable {
 
         let objectContainer = try decoder.singleValueContainer()
 
+        if let obj = try? objectContainer.decode(Pong.self) {
+            self = .pong(obj)
+            return
+        }
+
         if let obj = try? objectContainer.decode(Init.self) {
             self = .`init`(obj)
             return
