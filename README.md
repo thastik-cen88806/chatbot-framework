@@ -1,8 +1,8 @@
 # chatbot-framework
 
-• framework consists of  `CSCB` library target that you can import in your project, and two <`ChatbotDemo`, `ChatbotMockServer`> executable targets for sample client script and mock server that serve for demonstration and integration testing purposes. Additional concepts can be observed in included playgrounds that "should" work after you build the required imports for iOS platform. This is required since the playground is for iOS platform.
+• framework consists of  `CSCB` library target that you can import in your project, and  `ChatbotDemo` executable target for sample client script for demonstration and integration testing purposes. Additional concepts can be observed in included playgrounds that "should" work after you build the required imports for iOS platform. This is required since the playground is for iOS platform.
 
-• API communication objects are exported via `CSCBTypes` target which gets shared between  `CSCB`, `ChatbotMockServer` and `Playground` to ensure compatibility and code reuse
+• API communication objects are exported via `CSCBTypes` target which gets shared between  `CSCB` and `Playground` to ensure compatibility and code reuse
 
 ## CI/CD Tools
 
@@ -42,13 +42,9 @@
 
 • sample script to fire request to a mock server, providing example implemmentation
 
-## ChatbotMockServer
-
-• uses `Vapor` framework
-
 ## ChatbotTests
 
-• wishful thinking 4 now
+• some unit tests for now
 
 # Resources
 
