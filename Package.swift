@@ -38,7 +38,7 @@ let targets: [Target] = [
     ),
     .testTarget(name: "ChatbotTests",
                 dependencies: ["CSCBTypes"],
-                resources: [.copy("Resources")])
+                resources: [.process("Resources")])
 ]
 
 let package = Package(

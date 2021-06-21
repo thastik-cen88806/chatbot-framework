@@ -104,7 +104,7 @@ public class CBEngine: NSObject {
                     self.logger.error("ping \(error)")
                 }
 
-            default: self.logger.notice("opcode unhandled: \(opcode)")
+            default: self.logger.notice("opcode unhandled: \(String(describing: opcode))")
         }
     }
 
