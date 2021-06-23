@@ -31,8 +31,6 @@ public struct TokenZero: Codable {
 
     // MARK: - Properties
 
-    fileprivate static let decoder = JSONDecoder()
-
     let userToken: TokenJWT
     public let userID: UserID
     let windowOpen: Bool
@@ -56,60 +54,5 @@ extension TokenZero: CustomStringConvertible {
 
     public var description: String {
         return self.debugDescription
-    }
-}
-
-// MARK: - Auxiliary
-
-extension String {
-
-    public func decodeTokenZero() throws -> TokenZero {
-
-        let jsonWhiteSpace = "\\s"
-        let jsonPattern = "\\{(.*)\\}"
-
-        guard let result = try? self
-            .replacingOccurrences(of: jsonWhiteSpace, with: "", options: .regularExpression)
-            .match(regex: jsonPattern)
-            .data(using: .utf8)?
-            .decode(to: TokenZero.self) else {
-
-                throw CBError.tokenZeroHTMLExtract(error: self)
-        }
-
-        return result
-    }
-}
-
-extension Data {
-
-    /// Helper to allow oneline decode action
-    ///
-    /// Example:
-    /// ========
-    ///````swift
-    ///let jsonWhiteSpace = "\\s"
-    ///let jsonPattern = "\\{(.*)\\}"
-    ///
-    ///let x = try? string
-    ///    .replacingOccurrences(of: jsonWhiteSpace, with: "", options: .regularExpression)
-    ///    .match(regex: jsonPattern)
-    ///    .data(using: .utf8)?
-    ///    .decode(to: TokenZero.self)
-    ///````
-    /// - Parameter to: object to which the underlining data will be decoded (currently `TokenZero`)
-    /// - Throws: `CBError.tokenZeroDecode` if decoding json value fails
-    /// - Returns: object specified as parameter (currently `TokenZero`)
-    ///
-    func decode<T: Codable>(to: T.Type) throws -> T {
-
-        do {
-
-            return try TokenZero.decoder.decode(T.self, from: self)
-
-        } catch {
-
-            throw CBError.tokenZeroDecode(error: error.localizedDescription)
-        }
     }
 }

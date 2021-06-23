@@ -18,6 +18,7 @@ public final class CBFramework {
 
     private enum Key {
 
+        static let url = "https://webchat.csast.csas.cz/"
         static let referer = "https://www.csast.csas.cz"
         static let channelID = "e5932cce-0705-4261-9194-3bd482aba287"
     }
@@ -26,40 +27,29 @@ public final class CBFramework {
 
     public let tokenPublisher = PassthroughSubject<TokenZero, CBError>()
 
-    var cancellable: AnyCancellable?
-    var cancellable2: AnyCancellable?
-    var cancellable3: AnyCancellable?
+    var tokenCancellable: AnyCancellable?
+    var eventCancellable: AnyCancellable?
+    var messageCancellable: AnyCancellable?
 
     private let encoder = JSONEncoder()
     private let logger = Logger(label: "websocka")
-    private let _url: String
     private var cookies: [HTTPCookie]?
     private var socket: CBEngine?
     private var token: TokenZero?
 
     private var url: String {
-        return "\(self._url)?token=\(self.token?.jwt ?? "NA")"
+        return "\(Key.url)?token=\(self.token?.jwt ?? "NA")"
     }
 
     // MARK: -- Init
 
-    /// create the framework object with connection created to specified `URL`
+    /// create the framework object
     ///
-    /// - Parameter urlString: <#urlString description#>
     /// - Throws: <#description#>
     ///
-    public init(url urlString: String) throws {
+    public init() throws {
 
-        self._url = urlString
-
-        self.cancellable = tokenPublisher.sink(receiveCompletion: { _ in
-            print(">>> finished")
-        }, receiveValue: { [weak self] value in
-
-            self?.logger.info("\(value)")
-            self?.token = value
-            try? self?.connect()
-        })
+        self.setupBindings()
 
         defer {
 
@@ -67,37 +57,36 @@ public final class CBFramework {
         }
     }
 
-    func connect() throws {
+    deinit {
 
-        guard let url = URL(string: self.url) else {
+        self.tokenCancellable?.cancel()
+        self.eventCancellable?.cancel()
+        self.messageCancellable?.cancel()
+        socket?.disconnect()
+    }
 
-            self.logger.error("invalidUri: \(self.url)")
-            throw CBError.invalidUri(url: self.url)
-        }
+    // MARK: -- LifeCycle
 
-        var request = URLRequest(url: url)
-        request.addValue("webchat.csast.csas.cz", forHTTPHeaderField: "Host")
-        request.addValue("https://webchat.csast.csas.cz", forHTTPHeaderField: "Origin")
-        request.setValue(UserAgent.agent, forHTTPHeaderField: "User-Agent")
+    func setupBindings() {
 
-        HTTPCookieStorage.shared.setCookies(self.cookies ?? [],
-                                            for: URL(string: "wss://webchat.csast.csas.cz/"),
-                                            mainDocumentURL: nil)
+        self.tokenCancellable = tokenPublisher.sink(receiveCompletion: { _ in
+            print(">>> finished")
+        }, receiveValue: { [weak self] value in
 
-        for cookie in self.cookies ?? [] {
-            self.logger.info("cookie: \(cookie.name): \(cookie.value)")
-        }
+            self?.logger.info("\(value)")
+            self?.token = value
+            try? self?.connectWebsocket()
+        })
 
-        self.logger.info("request: \(url.absoluteString)")
-        socket = CBEngine(logger: self.logger)
-
-        self.cancellable2 = self.socket?.eventPublisher.sink(receiveCompletion: { _ in
+        self.eventCancellable = self.socket?.eventPublisher.sink(receiveCompletion: { _ in
             print(">>> finished")
         }, receiveValue: { [weak self] event in
 
+            self?.logger.info("\(event)")
+
             switch event {
 
-                case .connected: self?.startConversation()
+                case .connected: self?.setupConversation()
 
                 case .disconnected(_, _): self?.logger.info("disconnected")
 
@@ -119,23 +108,58 @@ public final class CBFramework {
             }
         })
 
-        self.cancellable3 = self.socket?.msgPublisher.sink(receiveCompletion: { _ in
+        self.messageCancellable = self.socket?.msgPublisher.sink(receiveCompletion: { _ in
             print(">>> finished")
-        }, receiveValue: { msg in
+        }, receiveValue: { [weak self] msg in
 
+            self?.logger.info("\(msg)")
             print(msg)
         })
+    }
 
+    func connectWebsocket() throws {
+
+        self.logger.info("connect websocket")
+
+        socket = CBEngine(logger: self.logger)
+
+        let request = try self.setupRequest(to: self.url)
         socket?.start(request: request)
     }
 
-    private func startConversation() {
+    private func setupRequest(to urlString: String) throws -> URLRequest {
+
+        guard let url = URL(string: urlString) else {
+
+            self.logger.error("invalidUri: \(urlString)")
+            throw CBError.invalidUri(url: urlString)
+        }
+
+        self.logger.info("request: \(url.absoluteString)")
+
+        var request = URLRequest(url: url)
+        request.addValue("webchat.csast.csas.cz", forHTTPHeaderField: "Host")
+        request.addValue("https://webchat.csast.csas.cz", forHTTPHeaderField: "Origin")
+        request.setValue(UserAgent.agent, forHTTPHeaderField: "User-Agent")
+
+        HTTPCookieStorage.shared.setCookies(self.cookies ?? [],
+                                            for: URL(string: "wss://webchat.csast.csas.cz/"),
+                                            mainDocumentURL: nil)
+
+        for cookie in self.cookies ?? [] {
+            self.logger.info("cookie: \(cookie.name): \(cookie.value)")
+        }
+
+        return request
+    }
+
+    private func setupConversation() {
 
         let channelID: Tagged<Channel, String> = "e5932cce-0705-4261-9194-3bd482aba287"
 
         guard let senderID = self.token?.userID else {
 
-            self.logger.error("startConversation senderID: \(self.token?.userID ?? "N/A")")
+            self.logger.error("setupConversation senderID: \(self.token?.userID ?? "N/A")")
             return
         }
 
@@ -154,14 +178,6 @@ public final class CBFramework {
         let tokenUrl = URL(string: "https://webchat.csast.csas.cz/api/frame?cid=\(Key.channelID)")!
         try? self.getToken(from: tokenUrl)
     }
-
-    deinit {
-
-        self.cancellable?.cancel()
-        socket?.disconnect()
-    }
-    
-    // MARK: -- LifeCycle
 
     func getToken(from url: URL) throws {
 

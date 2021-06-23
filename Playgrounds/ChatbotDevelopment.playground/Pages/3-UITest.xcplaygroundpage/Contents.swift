@@ -1,18 +1,62 @@
-import Foundation
 import PlaygroundSupport
-import CSCBTypes
-import Tagged
+import SwiftUI
+//import CSCB
+//import CSCBTypes
 
-let channelID: Tagged<Channel, String> = "e5932cce-0705-4261-9194-3bd482aba287"
-let channelID2: Tagged<Channel, String> = "e5932cce-0705-4261-9194-3bd482aba287"
+struct ContentView: View {
 
-let personaID: Tagged<Persona, String> = "e5932cce-0705-4261-9194-3bd482aba287"
+//    @StateObject var data = BotModel()
 
-print(channelID == channelID2)
-//print(channelID == personaID)
+    var body: some View {
+        VStack {
+            MessageView(contentMessage: "Hello from George", isCurrentUser: false)
+            MessageView(contentMessage: "Help with account", isCurrentUser: true)
+        }
+        .padding(.horizontal, 15)
+    }
+}
 
-let rec = Recipient(id: channelID)
-let rec2 = Recipient(id: channelID2)
+struct MessageView: View {
 
-print(rec == rec2)
+    var contentMessage: String
+    var isCurrentUser: Bool
+
+    var body: some View {
+        VStack {
+            HStack {
+                if isCurrentUser {
+                    Spacer()
+                }
+                Text(contentMessage)
+                    .padding(10)
+                    .foregroundColor(isCurrentUser ? .white : .black)
+                    .background(isCurrentUser ? Color(UIColor.systemBlue) : Color(UIColor.systemGreen))
+                    .clipShape(Capsule())
+                if !isCurrentUser {
+                    Spacer()
+                }
+            }
+            .padding(isCurrentUser ? .leading : .trailing, 55)
+            .padding(.vertical, 10)
+        }
+    }
+}
+
+//final class BotModel: ObservableObject {
+//
+//    @Published var msgs: [ChatMessage] = []
+//    var framework: CBFramework?
+//
+//    func onAppear() {
+//        print(">>> YO")
+//        do {
+//            self.framework = try CBFramework()
+//        } catch {
+//            print(">>> error \(error)")
+//        }
+//    }
+//}
+
+PlaygroundPage.current.setLiveView(ContentView())
+
 //: [Previous](@previous)                                                      [Next](@next)

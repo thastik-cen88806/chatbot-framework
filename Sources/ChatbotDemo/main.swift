@@ -12,9 +12,10 @@ import CSCBTypes
 
 let sema = DispatchSemaphore(value: 0)
 
-guard let client = try? CBFramework(url: "https://webchat.csast.csas.cz/") else {
-
-    fatalError(">>> failed url")
+do {
+    let client = try CBFramework()
+} catch {
+    print(">>> error \(error)")
 }
 
 _ = sema.wait(timeout: .now() + 10)
