@@ -65,7 +65,6 @@ extension ChatMessage: Decodable {
             return
         }
 
-//        self.logger.warning("turn on debug logging to see underlying json")
         self = .unknown
     }
 }

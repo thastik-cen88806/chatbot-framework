@@ -19,6 +19,7 @@ public final class CBFramework {
     private enum Key {
 
         static let url = "https://webchat.csast.csas.cz/"
+        static let tokenUrl = "https://webchat.csast.csas.cz/api/frame?cid="
         static let referer = "https://www.csast.csas.cz"
         static let channelID = "e5932cce-0705-4261-9194-3bd482aba287"
     }
@@ -34,7 +35,7 @@ public final class CBFramework {
     private let encoder = JSONEncoder()
     private let logger = Logger(label: "websocka")
     private var cookies: [HTTPCookie]?
-    private var socket: CBEngine?
+    private let socket: CBEngine
     private var token: TokenZero?
 
     private var url: String {
@@ -45,16 +46,14 @@ public final class CBFramework {
 
     /// create the framework object
     ///
-    /// - Throws: <#description#>
+    /// - Note: the socket needs to be set before `setupBindings` is called
     ///
     public init() throws {
 
+        self.socket = CBEngine(logger: self.logger)
+
         self.setupBindings()
-
-        defer {
-
-            self.updateToken()
-        }
+        try self.updateToken()
     }
 
     deinit {
@@ -62,12 +61,12 @@ public final class CBFramework {
         self.tokenCancellable?.cancel()
         self.eventCancellable?.cancel()
         self.messageCancellable?.cancel()
-        socket?.disconnect()
+        socket.disconnect()
     }
 
     // MARK: -- LifeCycle
 
-    func setupBindings() {
+    private func setupBindings() {
 
         self.tokenCancellable = tokenPublisher.sink(receiveCompletion: { _ in
             print(">>> finished")
@@ -78,7 +77,7 @@ public final class CBFramework {
             try? self?.connectWebsocket()
         })
 
-        self.eventCancellable = self.socket?.eventPublisher.sink(receiveCompletion: { _ in
+        self.eventCancellable = self.socket.eventPublisher.sink(receiveCompletion: { _ in
             print(">>> finished")
         }, receiveValue: { [weak self] event in
 
@@ -86,7 +85,13 @@ public final class CBFramework {
 
             switch event {
 
-                case .connected: self?.setupConversation()
+                case .connected:
+
+                    do {
+                        try self?.setupConversation()
+                    } catch {
+                        self?.logger.error("setupConversation: \(error)")
+                    }
 
                 case .disconnected(_, _): self?.logger.info("disconnected")
 
@@ -108,7 +113,7 @@ public final class CBFramework {
             }
         })
 
-        self.messageCancellable = self.socket?.msgPublisher.sink(receiveCompletion: { _ in
+        self.messageCancellable = self.socket.msgPublisher.sink(receiveCompletion: { _ in
             print(">>> finished")
         }, receiveValue: { [weak self] msg in
 
@@ -117,14 +122,12 @@ public final class CBFramework {
         })
     }
 
-    func connectWebsocket() throws {
+    private func connectWebsocket() throws {
 
         self.logger.info("connect websocket")
 
-        socket = CBEngine(logger: self.logger)
-
         let request = try self.setupRequest(to: self.url)
-        socket?.start(request: request)
+        socket.start(request: request)
     }
 
     private func setupRequest(to urlString: String) throws -> URLRequest {
@@ -153,7 +156,7 @@ public final class CBFramework {
         return request
     }
 
-    private func setupConversation() {
+    private func setupConversation() throws {
 
         let channelID: Tagged<Channel, String> = "e5932cce-0705-4261-9194-3bd482aba287"
 
@@ -169,17 +172,26 @@ public final class CBFramework {
         let json = Init(recipient: recipient, sender: sender)
         let start = Start(recipient: recipient, sender: sender)
 
-        try? self.send(.`init`(json))
-        try? self.send(.start(start))
+        self.send(.`init`(json))
+        self.send(.start(start))
     }
 
-    func updateToken() {
+    private func updateToken() throws {
 
-        let tokenUrl = URL(string: "https://webchat.csast.csas.cz/api/frame?cid=\(Key.channelID)")!
-        try? self.getToken(from: tokenUrl)
+        guard let tokenUrl = URL(string: "\(Key.tokenUrl)\(Key.channelID)") else {
+
+            self.logger.error("invalidUri: \(Key.tokenUrl)\(Key.channelID)")
+            throw CBError.invalidUri(url: "\(Key.tokenUrl)\(Key.channelID)")
+        }
+
+        self.getToken(from: tokenUrl)
     }
 
-    func getToken(from url: URL) throws {
+    /// obtain the token from the backend and extract it from received html (yaas HTML)
+    ///
+    /// - Parameter url: token provider `URL`
+    ///
+    private func getToken(from url: URL) {
 
         self.logger.info("getToken")
 
@@ -217,18 +229,23 @@ public final class CBFramework {
         }.resume()
     }
 
-//    public func ping() {
-//
-//        var timestamp = Date.currentTimeStamp
-//        let data = Data(bytes: &timestamp,
-//                        count: MemoryLayout.size(ofValue: timestamp))
-//        socket?.write(ping: data)
-//    }
+    /// send specific `ChatMessage` to server
+    ///
+    /// - Note: `ChatMessage` is enum with limited scope of objects that we can send. They must be `Encodable` and so
+    ///         we assume that this function will never fail
+    ///
+    /// - Parameter msg: `ChatMessage` object
+    ///
+    public func send(_ msg: ChatMessage) {
 
-    public func send(_ msg: ChatMessage) throws {
+        do {
 
-        let jsonData = try self.encoder.encode(msg)
+            let jsonData = try self.encoder.encode(msg)
+            socket.write(data: jsonData)
 
-        socket?.write(data: jsonData)
+        } catch {
+
+            self.logger.critical("send: \(msg)")
+        }
     }
 }

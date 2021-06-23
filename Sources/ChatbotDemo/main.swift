@@ -13,7 +13,9 @@ import CSCBTypes
 let sema = DispatchSemaphore(value: 0)
 
 do {
+
     let client = try CBFramework()
+
 } catch {
     print(">>> error \(error)")
 }
