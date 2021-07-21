@@ -10,7 +10,9 @@ import Foundation
 
 /// Quick Reply
 ///
-///````
+/// Example:
+/// ========
+///````javascript
 ///{
 ///  "content_type":"text",
 ///  "title":"Search",
@@ -18,14 +20,22 @@ import Foundation
 ///}
 ///````
 ///
-/// SeeAlso: - [Webchat API Reference](https://ceskasporitelna.github.io/messaging-router-docs/docs/api)
-///
-public struct QuickReply: Codable {
+public struct QuickReply: Codable, AutoEquatable {
+
+    // MARK: - Types
+
+    enum CodingKeys: String, CodingKey {
+
+        case contentType = "content_type"
+        case title
+        case payload
+    }
 
     // MARK: - Properties
 
     let contentType: String
     let title: String
+
     let payload: String?
 
     // MARK: - Init
@@ -33,16 +43,35 @@ public struct QuickReply: Codable {
     /// Quick Reply
     ///
     /// - Parameters:
-    ///   - contentType: ???????????????????????????????????????????????????????????????????????????????????????????
+    ///   - contentType: ??
     ///   - title: The QRs label
     ///   - payload: Developers defined payload
     ///
     public init(contentType: String,
                 title: String,
-                payload: String) {
+                payload: String?) {
 
         self.contentType = contentType
         self.title = title
+
         self.payload = payload
+    }
+}
+
+// MARK: - Debug
+
+extension QuickReply: CustomDebugStringConvertible {
+
+    public var debugDescription: String {
+
+        return "\(self.title)"
+    }
+}
+
+extension QuickReply: CustomStringConvertible {
+
+    public var description: String {
+
+        return self.debugDescription
     }
 }

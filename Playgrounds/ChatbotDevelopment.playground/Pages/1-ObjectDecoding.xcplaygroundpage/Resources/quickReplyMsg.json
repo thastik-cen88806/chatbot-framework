@@ -1,0 +1,42 @@
+{
+    "app_id": "cc_bot_master",
+    "message": {
+        "quick_replies": [
+            {
+                "content_type": "text",
+                "payload": "{\"action\":\"/Zasl\u00e1n\u00ed karty\",\"data\":{\"_ca\":\"/*\"}}",
+                "title": "Zasl\u00e1n\u00ed karty"
+            },
+            {
+                "content_type": "text",
+                "payload": "{\"action\":\"/Zm\u011bna limit\u016f ke kart\u011b\",\"data\":{\"_ca\":\"/*\"}}",
+                "title": "Zm\u011bna limit\u016f ke kart\u011b"
+            },
+            {
+                "content_type": "text",
+                "payload": "{\"action\":\"/D\u00e9lka p\u0159evodu\",\"data\":{\"_ca\":\"/*\"}}",
+                "title": "D\u00e9lka p\u0159evodu"
+            },
+            {
+                "content_type": "text",
+                "payload": "{\"action\":\"/Zm\u011bna osobn\u00edch \u00fadaj\u016f\",\"data\":{\"_ca\":\"/*\"}}",
+                "title": "Zm\u011bna osobn\u00edch \u00fadaj\u016f"
+            },
+            {
+                "content_type": "text",
+                "payload": "{\"action\":\"/Kde je sm\u011bn\u00e1rna\",\"data\":{\"_ca\":\"/*\"}}",
+                "title": "Kde je sm\u011bn\u00e1rna"
+            }
+        ],
+        "text": "S \u010d\u00edm V\u00e1m m\u016f\u017eu poradit?"
+    },
+    "messaging_type": "RESPONSE",
+    "mid": "e5932cce-0705-4261-9194-3bd482aba287.3WnoAt9Zz251.SaIfjuy.6I6NNk3",
+    "recipient": {
+        "id": "3WnoAt9Zz251"
+    },
+    "sender": {
+        "id": "e5932cce-0705-4261-9194-3bd482aba287"
+    },
+    "timestamp": 1623663300312
+}

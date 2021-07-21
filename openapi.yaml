@@ -1,0 +1,2163 @@
+openapi: 3.0.3
+info:
+  title: Webchat API
+  description: Webchat server API. Based upon Facebook Messenger protocol. See more on https://developers.facebook.com/docs/messenger-platform/reference
+  contact:
+    email: MLChatDEVEGIT@erstegroup.com
+  version: 1.0.1
+servers:
+  - url: https://webchat.csast.csas.cz/
+    description: Test server (Greenhouse environment)
+paths:
+  /events:
+    get:
+      tags:
+      - events
+      summary: List Events
+      description: Returns a conversation history
+      operationId: getEvents
+      parameters:
+      - name: cid
+        in: query
+        description: Conversation ID
+        required: true
+        schema:
+          type: string
+      - name: startAt
+        in: query
+        description: Lower threshold timestamp
+        schema:
+          type: number
+      - name: knownCount
+        in: query
+        description: Waits for new events when the event count matches and startAt is present
+        schema:
+          type: number
+      - name: endAt
+        in: query
+        description: Upper threshold timestamp
+        schema:
+          type: number
+      - name: limit
+        in: query
+        description: Limits the number of requested items
+        schema:
+          type: number
+          default: 100.0
+      - name: api_key
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: List of all events in coversation history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventList'
+      security:
+      - api_key: []
+  /send:
+    post:
+      tags:
+      - send
+      summary: Create and pass event(s) into the chatbot router for processing
+      description: Send API for bot and widget
+      operationId: sendEvent
+      requestBody:
+        description: Event Request
+        content:
+          'application/json':
+            schema:
+              anyOf:
+                - $ref: '#/components/schemas/TextMessageEvent'
+                - $ref: '#/components/schemas/TextMessageWithQuickReplies'
+                - $ref: '#/components/schemas/TypingEvent'
+                - $ref: '#/components/schemas/AttachmentEvent'
+                - $ref: '#/components/schemas/PassThreadEvent'
+                - $ref: '#/components/schemas/TrackingEvent'
+        required: true
+      responses:
+        '200':
+          description: Event successfully created.
+          content: {}
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      x-codegen-request-body-name: EventRequest
+      security:
+        - bearerAuth: []
+  /channels:
+    get:
+      tags:
+      - channels
+      - config
+      summary: Get channels and its settings
+      description: Return an array with elements of type Channel. Each channel contain its settings.
+      operationId: getChannels
+      responses:
+        '200':
+          description: List of channels.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Channel'
+    post:
+      tags:
+      - channels
+      - config
+      summary: Create a channel
+      description: Creates a new channel
+      operationId: createChannel
+      requestBody:
+        description: New channel specs
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+        required: true
+      responses:
+        '200':
+          description: Channel successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+      x-codegen-request-body-name: Channel
+  /channel-cache:
+    delete:
+      tags:
+        - channels
+        - cache
+      summary: Clear channel Redis (https://redis.io/) cache
+      operationId: clearChannelCache
+      responses:
+        '200':
+          description: Redis cache cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClearCacheResponse"
+  /channels/{id}:
+    get:
+      tags:
+      - channels
+      summary: Get channel settings
+      description: Contains channel preferences
+      operationId: getChannel
+      parameters:
+      - name: id
+        in: path
+        description: Channel ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The channel being returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+    put:
+      tags:
+      - channels
+      - config
+      summary: Update a channel
+      description: Updates existing channel
+      operationId: updateChannel
+      parameters:
+      - name: id
+        in: path
+        description: Channel ID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Channel specs
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+        required: true
+      responses:
+        '200':
+          description: Channel updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+      x-codegen-request-body-name: Channel
+    delete:
+      tags:
+      - channels
+      - config
+      summary: Remove a channel
+      description: Removes existing channel with all relations
+      operationId: deleteChannel
+      parameters:
+      - name: id
+        in: path
+        description: Channel ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Channel deleted.
+          content: {}
+  # probably old and deprecated. To be deleted. Response does not make sense
+  # /channels/{id}/apps:
+  #   get:
+  #     tags:
+  #     - channels
+  #     - apps
+  #     summary: Get list of Applications related to specific Channel
+  #     parameters:
+  #     - name: id
+  #       in: path
+  #       description: Channel ID
+  #       required: true
+  #       schema:
+  #         type: string
+  #     responses:
+  #       200:
+  #         description: successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  /apps:
+    get:
+      tags:
+      - applications
+      - config
+      summary: Get all applications
+      description: List of applications
+      operationId: getApps
+      responses:
+        '200':
+          description: A list of applications.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/App'
+    post:
+      tags:
+      - applications
+      - config
+      summary: Create an app
+      description: Creates a new app
+      operationId: createApp
+      requestBody:
+        description: New app specs
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/App'
+        required: true
+      responses:
+        '200':
+          description: Application successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+      x-codegen-request-body-name: App
+  /managedApps:
+    get:
+      tags:
+        - applications
+        - config
+      summary: Get all applications
+      description: List of applications (consumed by the webchat admin)
+      operationId: getManagedApps
+      responses:
+        '200':
+          description: List of applications consumed by the webchat admin.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ManagedApp'
+  /app-cache:
+    delete:
+      tags:
+        - applications
+        - cache
+      summary: Clear application Redis (https://redis.io/) cache
+      operationId: clearAppCache
+      responses:
+        '200':
+          description: Redis cache cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClearCacheResponse"
+  /apps/{id}:
+    get:
+      tags:
+      - applications
+      - config
+      summary: Get application
+      description: Contains app settings
+      operationId: getApp
+      parameters:
+      - name: id
+        in: path
+        description: Application ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: An application being returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+    put:
+      tags:
+      - applications
+      - config
+      summary: Update an application
+      description: Updates existing application
+      operationId: updateApp
+      parameters:
+      - name: id
+        in: path
+        description: App ID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Application specs
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/App'
+        required: false
+      responses:
+        '200':
+          description: Application updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+      x-codegen-request-body-name: App
+    delete:
+      tags:
+      - applications
+      - config
+      summary: Remove an application
+      description: Removes existing application with all relations
+      operationId: deleteApp
+      parameters:
+      - name: id
+        in: path
+        description: Application ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Application deleted.
+          content: {}
+  /gateway/onboarding/identity-registration/unverified-identity:
+    post:
+      tags:
+      - gateway
+      - onboarding
+      summary: Create an unverified identity
+      description: Creates an unverified idenity using 3rd party api
+      operationId: createIdentity
+      requestBody:
+        description: Unverified identity payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnverifiedIdentityPayload'
+        required: false
+      responses:
+        '200':
+          description: Unverified identity created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnverifiedIdentityResponse'
+      x-codegen-request-body-name: UnverifiedIdentityPayload
+  /gateway/onboarding/identity-registration/unverified-identity/{id}:
+    get:
+      tags:
+      - gateway
+      - onboarding
+      summary: Unverified identity status
+      description: Gets an unverified idenity status using 3rd party api
+      operationId: getUnverifiedIdentity
+      parameters:
+      - name: id
+        in: path
+        description: Identification ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Unverified Identity being returned.
+          content: {}
+        '400':
+          description: bad request
+          content: {}
+        '404':
+          description: not found
+          content: {}
+  /gateway/onboarding/account-registration:
+    get:
+      tags:
+      - gateway
+      - onboarding
+      - account
+      summary: Get account registration info
+      operationId: getAccountRegistration
+      parameters:
+      - name: stateMock
+        in: query
+        schema:
+          type: string
+      - name: mockup
+        in: query
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Account registartion information being returned.
+          content: {}
+        '403':
+          description: HTTP Forbidden
+          content: {}
+        '404':
+          description: ID_NOT_FOUND, UNKNOWN_CUSTOMER
+          content: {}
+    post:
+      tags:
+      - gateway
+      - onboarding
+      - account
+      summary: Start onboarding process with account registration
+      description: Starts onboarding using 3rd party api
+      operationId: createAccountRegistration
+      requestBody:
+        description: Identification ID
+        content:
+          application/json: {}
+        required: true
+      responses:
+        '204':
+          description: Onboarding account registration created.
+          content: {}
+      x-codegen-request-body-name: identificationId
+  /gateway/onboarding/account-registration/{id}/aml-questionnaire:
+    put:
+      tags:
+      - gateway
+      - onboarding
+      - account
+      summary: Update AML questionnaire
+      description: Stores AML answers in Onboarding DB
+      operationId: updateAmlQuestionnaire
+      parameters:
+      - name: id
+        in: path
+        description: Identification ID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: List of AML questions
+        content:
+          application/json: {}
+        required: true
+      responses:
+        '204':
+          description: AML questionnaire updated.
+          content: {}
+      x-codegen-request-body-name: questionnaire
+  /gateway/onboarding/account-registration/{id}/tax-residency:
+    put:
+      tags:
+      - gateway
+      - onboarding
+      - account
+      summary: Update tax residency
+      description: Stores taxResidency in Onboarding DB
+      operationId: updateTaxResidency
+      parameters:
+      - name: id
+        in: path
+        description: Identification ID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Tax residency country code
+        content:
+          application/json: {}
+        required: true
+      responses:
+        '204':
+          description: successful operation
+          content: {}
+      x-codegen-request-body-name: taxResidency
+  /gateway/onboarding/account-registration/{id}/virtual-card:
+    put:
+      tags:
+      - gateway
+      - onboarding
+      - account
+      summary: Set virtual card
+      description: Sets virtual card in Onboarding DB
+      operationId: setVirtualCard
+      parameters:
+      - name: id
+        in: path
+        description: Registration ID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Boolean if customer wants virtual card or not
+        content:
+          application/json: {}
+        required: false
+      responses:
+        '204':
+          description: Virtual card updated
+          content: {}
+      x-codegen-request-body-name: virtualCard
+  /gateway/onboarding/person-identification/{id}:
+    get:
+      tags:
+      - gateway
+      - onboarding
+      - identification
+      summary: Get persons identification state info
+      operationId: getPersonIdentification
+      parameters:
+      - name: id
+        in: path
+        description: Identification ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: successful operation
+          content: {}
+        '400':
+          description: invalid request
+          content: {}
+        404:
+          description: not found
+          content: {}
+  /gateway/onboarding/person-identification/lead:
+    post:
+      tags:
+      - gateway
+      - onboarding
+      - lead
+      summary: Creates lead using 3rd party api
+      operationId: savePhoneNumber
+      requestBody:
+        content:
+          application/json: {}
+        required: true
+      responses:
+        '204':
+          description: Person identification lead created
+          content: {}
+        '400':
+          description: invalid request
+          content: {}
+      x-codegen-request-body-name: phoneNumber
+  /gateway/onboarding/person-identification/{id}/verification:
+    get:
+      tags:
+      - gateway
+      - onboarding
+      - payment
+      summary: Gets data for the penny transfer
+      operationId: getPennyTransferData
+      parameters:
+      - name: id
+        in: path
+        description: Identification ID
+        required: true
+        schema:
+          type: string
+      - name: mockup
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Penny transfer being returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPennyTransferDataResponse'
+        422:
+          description: invalid authentication token
+          content: {}
+    post:
+      tags:
+      - gateway
+      - onboarding
+      - identification
+      summary: Saves bank account number for penny transfer
+      operationId: saveAccountNumber
+      parameters:
+      - name: id
+        in: path
+        description: Identification ID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Penny transfer
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PennyTransferObject'
+        required: true
+      responses:
+        '204':
+          description: Bank account number saved.
+          content: {}
+      x-codegen-request-body-name: pennyTransfer
+  /gateway/onboarding/electronicstorage/my/cases/{id}:
+    get:
+      tags:
+      - gateway
+      - onboarding
+      summary: List of onboarding documents
+      parameters:
+      - name: id
+        in: path
+        description: Case ID
+        required: true
+        schema:
+          type: string
+      - name: mockup
+        in: query
+        schema:
+          type: string
+      responses:
+        '204':
+          description: List of onboarding documents.
+          content: {}
+        '403':
+          description: HTTP Forbidden
+          content: {}
+  /gateway/onboarding/electronicstorage/my/cases/{caseId}/documents/{documentId}/download:
+    get:
+      tags:
+      - gateway
+      - onboarding
+      summary: Onboarding document download
+      parameters:
+      - name: caseId
+        in: path
+        description: User Case ID
+        required: true
+        schema:
+          type: string
+      - name: documentId
+        in: path
+        description: Document ID
+        required: true
+        schema:
+          type: string
+      - name: authToken
+        in: query
+        description: Auth Token
+        required: true
+        schema:
+          type: string
+      - name: apiKey
+        in: query
+        description: API key
+        required: true
+        schema:
+          type: string
+      - name: mockup
+        in: query
+        schema:
+          type: string
+      responses:
+        '204':
+          description: File content with original MIME type
+          content: {}
+        '403':
+          description: HTTP Forbidden
+          content: {}
+        '404':
+          description: HTTP Document not found
+          content: {}
+  /gateway/onboarding/qrcode/url:
+    # should be GET?
+    post:
+      tags:
+      - gateway
+      - onboarding
+      summary: Returns URL of the QR code
+      requestBody:
+        description: String data (UTF-8) to be encoded to the QR code
+        content:
+          '*/*': {}
+        required: true
+      responses:
+        '200':
+          description: successful response
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/QRCodeUrlResponse'
+        '403':
+          description: Request not successfully authorized by the CRUD authentication
+          content: {}
+      x-codegen-request-body-name: qrData
+  /gateway/onboarding/qrcode/src/{data}:
+    # should be post?
+    get:
+      tags:
+      - gateway
+      - onboarding
+      summary: Writes the QR code impage in the PNG format
+      parameters:
+      - name: data
+        in: path
+        description: Name of the QR code image file
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Successful response
+          content: {}
+        '500':
+          description: Data parameter invalid
+          content: {}
+  /gateway/onboarding/documents-signing-url:
+    # should be GET?
+    post:
+      tags:
+      - gateway
+      - onboarding
+      summary: Returns URL for signing documents
+      parameters:
+      - name: mockup
+        in: query
+        schema:
+          type: string
+      requestBody:
+        description: User case to sign.
+        content:
+          application/json:
+            schema:
+              required:
+              - caseId
+              - documentsIds
+              type: object
+              properties:
+                caseId:
+                  type: string
+                documentsIds:
+                  type: array
+                  description: Identification of a document
+                  items:
+                    type: string
+        required: false
+      responses:
+        '200':
+          description: Signing URL
+          content:
+            '*/*':
+              schema:
+                type: object
+                properties:
+                  signingUrl:
+                    type: string
+        '403':
+          description: HTTP Forbidden
+          content: {}
+        '404':
+          description: HTTP Document not found
+          content: {}
+      x-codegen-request-body-name: case
+  /routing/state/{agentRouting}:
+    get:
+      tags:
+      - routing
+      summary: Returns routing rule and associated agent group state
+      parameters:
+      - name: agentRouting
+        in: path
+        description: Routing rule ID
+        required: true
+        schema:
+          type: string
+      - name: mockup
+        in: query
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Payload
+          content: {}
+        '404':
+          description: Routing rule not found
+          content: {}
+  /routing/routing-rules:
+    get:
+      tags:
+      - routing
+      summary: Collection of routing rules
+      responses:
+        '200':
+          description: Array of objects
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+    post:
+      tags:
+      - routing
+      summary: Create new routing rule
+      responses:
+        '201':
+          description: Newly created object
+          content: {}
+        '400':
+          description: Invalid payload
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+  /routing/routing-rules/{agentRouting}:
+    get:
+      tags:
+      - routing
+      summary: Get routing rule
+      parameters:
+      - name: agentRouting
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Routing rule object
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+    put:
+      tags:
+      - routing
+      summary: Update routing rule
+      parameters:
+      - name: agentRouting
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Updated routing rule
+          content: {}
+        '400':
+          description: Invalid payload
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+    delete:
+      tags:
+      - routing
+      summary: Delete routing rule
+      parameters:
+      - name: agentRouting
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Routing rule deleted.
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+  /routing/automation-rules:
+    get:
+      tags:
+      - routing
+      summary: Collection of automation rules
+      parameters:
+      - name: type
+        in: query
+        description: Filter parameter
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Array of objects
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+    post:
+      tags:
+      - routing
+      summary: Create new automation rule
+      parameters:
+      - name: type
+        in: query
+        description: Automation rule type
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: false
+      responses:
+        '204':
+          description: Automation rule created.
+          content: {}
+        '400':
+          description: Invalid payload
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+      x-codegen-request-body-name: cancelQuickReplyText
+  /routing/automation-rules/{id}:
+    get:
+      tags:
+      - routing
+      summary: Get automation rule
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Automation rule being returned.
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+    put:
+      tags:
+      - routing
+      summary: Update automation rule
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        description: Automation rule type
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: false
+      responses:
+        '204':
+          description: Automation rule object updated.
+          content: {}
+        '400':
+          description: Invalid payload
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+      x-codegen-request-body-name: cancelQuickReplyText
+    delete:
+      tags:
+      - routing
+      summary: Delete automation rule
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Automation rule deleted.
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+  /routing/routing-rule/{agentRouting}/automation-rules:
+    get:
+      tags:
+      - routing
+      summary: Get collection of automation rules associated with routing rule
+      parameters:
+      - name: agentRouting
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: List of automation rules under routing rule
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+        '404':
+          description: Missing associated routing rule
+          content: {}
+    post:
+      tags:
+      - routing
+      summary: Create new automation rule and routing rule association
+      parameters:
+      - name: agentRouting
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: false
+      responses:
+        '204':
+          description: New automation rule created.
+          content: {}
+        '400':
+          description: Invalid payload
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+        '404':
+          description: Missing associated routing rule
+          content: {}
+      x-codegen-request-body-name: cancelQuickReplyText
+  /routing/routing-rule/{agentRouting}/automation-rules/{id}:
+    put:
+      tags:
+      - routing
+      summary: Update automation rule
+      parameters:
+      - name: agentRouting
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: false
+      responses:
+        '204':
+          description: Automation rule updated.
+          content: {}
+        '400':
+          description: Invalid payload
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+        '404':
+          description: Missing associated routing rule
+          content: {}
+      x-codegen-request-body-name: cancelQuickReplyText
+    delete:
+      tags:
+      - routing
+      summary: Delete automation rule and routing rule association
+      parameters:
+      - name: agentRouting
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Automation rule deleted.
+          content: {}
+        '401':
+          description: Invalid access token
+          content: {}
+        '404':
+          description: Missing associated routing rule
+          content: {}
+  /identities:
+    post:
+      tags:
+      - identities
+      summary: Create an identity
+      description: Creates a new identity
+      operationId: postIdentity
+      requestBody:
+        description: New identity settings
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Identity'
+        required: true
+      responses:
+        '200':
+          description: Identity successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+      x-codegen-request-body-name: Identity
+  /identities/{id}:
+    get:
+      tags:
+      - identities
+      summary: Get an identity
+      description: Idetifies the user - by name and profile pic
+      operationId: getIdentity
+      parameters:
+      - name: id
+        in: path
+        description: Identity ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Identity being returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+    put:
+      tags:
+      - identities
+      summary: Update an identity
+      description: Updates the default identity
+      operationId: putIdentity
+      parameters:
+      - name: id
+        in: path
+        description: Identity ID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Update identity settings
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Identity'
+        required: true
+      responses:
+        '200':
+          description: Identity updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+      x-codegen-request-body-name: Identity
+    delete:
+      tags:
+      - identities
+      summary: Remove an identity
+      description: Clears the idenity
+      operationId: deleteIdentity
+      parameters:
+      - name: id
+        in: path
+        description: Identity ID
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Identity deleted.
+          content: {}
+  /attachments:
+    post:
+      tags:
+      - attachments
+      summary: Upload an attachment
+      description: Upload an attachment as a multipart/form-data
+      operationId: uploadAttachment
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                payload:
+                  type: string
+                  description: The file to upload
+                  format: binary
+                event:
+                  type: string
+                  description: An attachment event object without the payload
+      responses:
+        '200':
+          description: Attachment uploaded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentEvent'
+  /attachments/{id}:
+    get:
+      tags:
+      - attachments
+      summary: Get an attachment
+      description: Download an attachment
+      operationId: getAttachment
+      parameters:
+      - name: id
+        in: path
+        description: Attachment ID
+        required: true
+        schema:
+          type: string
+      - name: token
+        in: query
+        description: Authorization token
+        schema:
+          type: string
+      responses:
+        '200':
+          description: File contents with original MIME type
+          content: {}
+        '401':
+          description: HTML Page saying the access is is only to the authorized users
+          content: {}
+        '403':
+          description: HTML Page saying that you are not authorized to download this
+            file
+          content: {}
+        '404':
+          description: HTML Page saying that file does not exists
+          content: {}
+  /forceAb:
+    get:
+      tags:
+      - Redirect API
+      summary: Redirect to given url
+      description: During 301 redirect response the "_wcab_forcewc" cookie is set.
+      parameters:
+      - name: url
+        in: query
+        description: Landing page url
+        required: true
+        schema:
+          type: string
+      responses:
+        '301':
+          description: Redirect to landing page
+          content: {}
+        '404':
+          description: url query param not found
+          content: {}
+  /routing/details/{routingRule}:
+    get:
+      tags:
+      - Genesys routing
+      summary: API for aggregated information about the routing rule configuration
+        and the routing availability.
+      parameters:
+      - name: routingRule
+        in: path
+        description: Name of the routing rule to be used (in the infrastructure this
+          name is mapped to the shared context variable "agentRouting")
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Routing info.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/RoutingDetails'
+        '403':
+          description: Not Authorized.
+          content: {}
+components:
+  schemas:
+    PayloadObject:
+      required:
+      - payload
+      type: object
+      properties:
+        payload:
+          type: string
+          description: Developer defined payload
+          example: get-started
+    UnverifiedIdentityPayload:
+      required:
+      - email
+      - identificationId
+      - nickname
+      - phoneNumber
+      type: object
+      properties:
+        identificationId:
+          type: string
+          description: ID of an identification process for the current customer from
+            IDENTIFICATION module
+        phoneNumber:
+          type: string
+          description: Phone number of the customer's unverified identity
+        nickname:
+          type: string
+          description: Nickname of the customer's unverified identity
+        email:
+          type: string
+          description: Email of the customer's unverified identity
+    Event:
+      required:
+      - recipient
+      type: object
+      properties:
+        sender:
+          description: Sender object
+          required:
+          - id
+          type: object
+          properties:
+            id:
+              type: string
+              description: Sender identifier (channel or user)
+              example: j3094n8f3
+            ip:
+              type: string
+              description: IP address of the sender.
+              example: 127.0.0.1
+        recipient:
+          description: Recipient object
+          required:
+          - id
+          type: object
+          properties:
+            id:
+              type: string
+              description: Recipient identifier (channel or user)
+              example: J8daj438d
+        response_to_mid:
+            type: string
+            description: Identification of a turnaround - id of the event to which we are responding.
+        timestamp:
+          type: number
+          description: Event timestamp
+          example: 1556553964254
+        persona_id:
+          type: string
+          description: optional ID of Identity to use as a sender
+          example: 88099916-6b18-11e9-9b46-1681be663d30
+        persona:
+          $ref: '#/components/schemas/Persona'
+    EventList:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          description: Returned events
+          items:
+            $ref: '#/components/schemas/Event'
+    TextMessageEvent:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - message
+        type: object
+        properties:
+          message:
+            required:
+            - text
+            type: object
+            properties:
+              text:
+                type: string
+                description: Message text
+                example: Hello
+    TextMessageWithQuickReplies:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - message
+        type: object
+        properties:
+          message:
+            required:
+            - quick_replies
+            - text
+            type: object
+            properties:
+              text:
+                type: string
+                description: Message text
+                example: Hello
+              quick_replies:
+                type: array
+                description: List of quick replies
+                items:
+                  description: Quick reply
+                  required:
+                  - content_type
+                  - title
+                  type: object
+                  properties:
+                    content_type:
+                      type: string
+                      enum:
+                      - text
+                    title:
+                      type: string
+                      description: The quick reply label
+                      example: Thats OK
+                    payload:
+                      type: string
+                      description: Developers defined payload
+                      example: action-name
+    QuickReplyMessageEvent:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - message
+        type: object
+        properties:
+          message:
+            required:
+            - quick_reply
+            - text
+            type: object
+            properties:
+              text:
+                type: string
+                description: Message text
+                example: Hello
+              quick_reply:
+                $ref: '#/components/schemas/PayloadObject'
+    PostBackEvent:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - postback
+        type: object
+        properties:
+          source_mid:
+            type: string
+            description: When the postback is issued as an interaction with button,
+              this is a mid of the source event
+          postback:
+            $ref: '#/components/schemas/PayloadObject'
+    PassThreadRequest:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - target_app_id
+        type: object
+        properties:
+          target_app_id:
+            type: string
+            description: An application to pass conversation to
+          metadata:
+            type: string
+            description: Optional string data
+    PassThreadEvent:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - pass_thread_control
+        type: object
+        properties:
+          pass_thread_control:
+            required:
+            - new_owner_app_id
+            type: object
+            properties:
+              new_owner_app_id:
+                type: string
+                description: An application the conversation has been passed to
+              metadata:
+                type: string
+                description: Optional string data (JSON converted to string)
+    TakeThreadEvent:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - take_thread_control
+        type: object
+        properties:
+          take_thread_control:
+            required:
+            - previous_owner_app_id
+            type: object
+            properties:
+              previous_owner_app_id:
+                type: string
+                description: An application the conversation has been passed to
+              metadata:
+                type: string
+                description: Optional string data
+    TypingEvent:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - sender_action
+        type: object
+        properties:
+          sender_action:
+            type: string
+            enum:
+              - typing_on
+    AttachmentEvent:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - message
+        type: object
+        properties:
+          message:
+            required:
+            - attachment
+            type: object
+            properties:
+              attachment:
+                required:
+                - payload
+                - type
+                type: object
+                properties:
+                  # can be confusing, but this is name
+                  type:
+                    # this is type
+                    type: string
+                    description: Attachment type
+                    example: image
+                    enum:
+                    - image
+                    - file
+                  payload:
+                    required:
+                    - url
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        description: Attachment url
+                        example: http://www.some.com/image.jpg
+    TrackingEvent:
+      allOf:
+        - $ref: '#/components/schemas/Event'
+        - type: object
+          required:
+            - tracking_information
+          properties:
+            tracking_information:
+              type: object
+              required:
+                - events
+                - payload
+              properties:
+                events:
+                  type: array
+                  description: List of events
+                  items:
+                    anyOf:
+                    # Implementation of David Menger's tracking protocol:
+                      - $ref: '#/components/schemas/TrackingLogEvent'
+                      - $ref: '#/components/schemas/ReportBusinessEvent'
+                      - $ref: '#/components/schemas/ReportNodeVisit'
+                      - $ref: '#/components/schemas/TrackingConversationEvent'
+                      - $ref: '#/components/schemas/TrackingAuditEvent'
+                payload:
+                  type: object
+                  description: |
+                    Optional tracking properties
+
+                    Currently the following properties are used:
+
+                    - **action** - The original action (before it is replaced based on the nodes visited)
+                    - **intent** - The winning intent in the format `{ name: 'NAME', confidence: NUMBER_BETWEEN_0_AND_100 }`.
+                    - **is_interactive** - Whether this is an interactive event (boolean).
+                    - **medium** - `Web` or `Mobile`.
+                    - **message** - The utterance.
+                    - **skill** - First skill used in this interaction.
+                    - **source** - Source from which the user is comming (currently only `Organic` is used).
+                    - **source_node** - Last visited node.
+                    - **understood** - Whether the utterance has been understood by the bot.
+                    - **url** - URL of the chat parent page.
+    TrackingLogEvent:
+      type: object
+      description: Event type for logging activities
+      required:
+        - category
+      properties:
+        category:
+          type: string
+          description: Represents predefined type of the event
+          enum:
+            - error
+            - warning
+            - debug
+            - info
+        non-required-parameters:
+          type: string
+          description: Place for non required parameters. See documentation.
+    ReportBusinessEvent:
+      type: object
+      description: Event for reporting activities. It is emitted whenever an important user or system event appears. It is not strictly related to the events used by the reporting platform (Google Analytics, Bean Counter).
+      required:
+        - category
+        - app_id
+      properties:
+        category:
+          type: string
+          description: |
+            Represents category of the tracking report event
+
+            Examples:
+            - `chat_closed` - User closed the chat window
+            - `handover` - Pass the thread to a human agent.
+            - `other` - A generic event.
+            - `nps` - User sent a feedback.
+            - `node_visited` - Conversation node has been visited.
+            - `pass_thread` - The control was passed to another bot.
+            - `start` - Conversation start.
+            - `user_input` - Any kind of user input (text, quick reply, image, ...).
+        action:
+          type: string
+          description: Event for the specified category.
+        app_id:
+          type: string
+          description: Id of the application processing the utterance. In case of a routing chatbot there may be more applications involved so more events with different `app_id` may be generated.
+        payload:
+          type: object
+          description: |
+            Optional parameters precising the event.
+
+            Examples:
+              - for `category == 'chat_closed'`:
+                no parameters
+
+              - for `category == 'handover'`:
+                  `{ reason: 'AGENT_REASON' }`
+
+              - for `category == 'node_visited'`:
+
+                  `{ source_node: 'VISITED_NODE' }`
+
+              - for `category == 'nps'`:
+
+                  `{ rating: 10, for: 'chatbot' }` (the best rating for a chatbot)
+
+                or
+
+                  `{ rating: 2, for: 'NAME (ID)' }` (the worst rating for a human agent spacified by `NAME` and `ID`)
+
+                or
+
+                  `{ rating: 6, for: 'multiple' }` (a rating for the case where more human agents were involved)
+
+               - for `category == 'other'`:
+
+                  `{ action: 'ACTION' }`
+
+               - for `category == 'pass_thread'`:
+
+                  `{ message: 'UTTERANCE', app_id: TARGET_APP_ID }`
+
+              - for `category == 'start'`:
+
+                  `{ source_node: 'FIRST_VISITED_NODE' }`
+
+              - for `category == 'user_input'`:
+
+                  `{ image: { url: 'IMAGE_SRC_URL' }, source_node: 'SOURCE_NODE' }`
+
+                or
+
+                  `{ text: 'UTTERANCE', source_node: 'SOURCE_NODE' }`
+
+                or
+
+                  `{ quick_reply: 'BUTTON_TEXT', source_node: 'SOURCE_NODE' }`
+
+    ReportNodeVisit:
+      type: object
+      description: Provides the list of all conversation nodes which are visited during the conversation
+      required:
+        - conversation_id
+        - node
+        - bot_name
+      properties:
+        conversation_id:
+          type: string
+          description: Unique identificator of a conversation
+          example: 3WWLPs1cfVfC
+        node:
+          type: array
+          description: List of nodes, passed during particular interaction
+          items:
+            type: string
+            description: Node ID
+        bot_name:
+          type: string
+          description: Name of the bot, serving the event
+        payload:
+          type: object
+          description: Place your non-required fields here. This part can contain fields as skill, value and source_redirect_page_url. In addition to this, you can pass your own payload here.
+    TrackingConversationEvent:
+      type: object
+      description: Event type for regular conversation
+      required:
+        - category
+      properties:
+        category:
+          type: string
+          description: Specify conversation
+        non-required-parameters:
+          type: string
+          description: Place for non required parameters. See documentation.
+    TrackingAuditEvent:
+      type: object
+      description: Event type for audit
+      required:
+        - category
+      properties:
+        category:
+          type: string
+          description: Defines category of the audit
+        non-required-parameters:
+          type: string
+          description: Place for non required parameters. See documentation.
+    Buttons:
+      type: array
+      description: List of max 10 buttons (required in button template)
+      items:
+        required:
+        - title
+        - type
+        type: object
+        properties:
+          type:
+            type: string
+            description: Button type (postback or web_url)
+            enum:
+            - postback
+            - web_url
+          title:
+            maxLength: 20
+            type: string
+            description: Button title
+            example: Go
+          payload:
+            maxLength: 1000
+            type: string
+            description: Required for postback button
+            example: <payload>
+          url:
+            maxLength: 1000
+            type: string
+            description: Required for web_url button
+            example: <url>
+    TemplateEvent:
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - required:
+        - message
+        type: object
+        properties:
+          message:
+            required:
+            - attachment
+            type: object
+            properties:
+              attachment:
+                required:
+                - payload
+                - type
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: Attachment type
+                    example: image
+                    enum:
+                    - template
+                  payload:
+                    required:
+                    - template_type
+                    type: object
+                    properties:
+                      template_type:
+                        type: string
+                        description: Type of template
+                        example: button
+                        enum:
+                        - button
+                        - generic
+                      text:
+                        maxLength: 640
+                        type: string
+                        description: Text (required in button template)
+                        example: Hello
+                      buttons:
+                        $ref: '#/components/schemas/Buttons'
+                      image_aspect_ratio:
+                        type: string
+                        description: Aspect ratio of generic template images. It's
+                          horizontal (1,91:1) by default.
+                        enum:
+                        - square
+                        - horizontal
+                      elements:
+                        type: array
+                        description: Up to 10 elements of generic template (required
+                          in generic template)
+                        items:
+                          required:
+                          - title
+                          type: object
+                          properties:
+                            title:
+                              maxLength: 80
+                              type: string
+                              description: Card title
+                              example: Welcome!
+                            subtitle:
+                              maxLength: 80
+                              type: string
+                              description: Card subtitle
+                              example: We have the right hat for everyone.
+                            image_url:
+                              type: string
+                              description: Card image
+                              example: https://petersfancybrownhats.com/company_image.png
+                            default_action:
+                              required:
+                              - type
+                              - url
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  description: Action type
+                                  enum:
+                                  - web_url
+                                url:
+                                  type: string
+                                  description: Url to open
+                                  example: https://petersfancybrownhats.com/view?item=103
+                                webview_height_ratio:
+                                  type: string
+                                  description: no description
+                                  example: tall
+                              description: Open an URL, when user clicks the card
+                            buttons:
+                              $ref: '#/components/schemas/Buttons'
+                          description: Generic template item
+    Identity:
+      required:
+      - id
+      - name
+      - profile_pic
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identity identifier (default identity id matches with recipient/sender
+          example: 88099916-6b18-11e9-9b46-1681be663d3e
+        name:
+          type: string
+          description: User name
+          example: John Doe
+        profile_pic:
+          type: string
+          description: URL or Base64 encoded image
+          example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8AARIQB46hC+ioEAGX8E/cKr6qsAAAAAElFTkSuQmCC
+    Channel:
+      required:
+      - id
+      - primary_receiver_app_id
+      type: object
+      properties:
+        id:
+          type: string
+          description: Channel identifier
+          example: 88099916-6b18-11e9-9b46-1681be663d3e
+        get_started:
+          $ref: '#/components/schemas/PayloadObject'
+        primary_receiver_app_id:
+          type: string
+          description: the application, which will dispatch the first contact
+        cookie_domain:
+          type: string
+          description: Domain in which is allowed to set up cookies
+        whitelisted_origins:
+          type: array
+          description: Allowed URL addresses
+          items:
+            type: string
+    Persona:
+      required:
+      - name
+      - profile_pic
+      type: object
+      properties:
+        name:
+          type: string
+          description: users full name
+        profile_pic:
+          type: string
+          description: picture url
+    App:
+      required:
+      - id
+      - webhook
+      type: object
+      properties:
+        id:
+          type: string
+          description: Application identifier
+          example: 88099916-6b18-11e9-9b46-1681be663d3e
+        webhook:
+          type: string
+          description: URL of the application webhook
+          example: https://mybot.domain.com/bot
+        messages:
+          type: boolean
+          description: Subscribe to messages
+          example: true
+        messaging_postbacks:
+          type: boolean
+          description: Subscribe to messages
+          example: true
+        standby:
+          type: boolean
+          description: Subscribe to all messages
+          example: false
+        messaging_handovers:
+          type: boolean
+          description: Subscribe to all messages
+          example: true
+        typing:
+          type: boolean
+          description: Subscribe to typing event
+          example: true
+        read_delivery:
+          type: boolean
+          description: Subscribe to read and delivery events
+          example: true
+        parent_app_id:
+          type: string
+          description: Parent Application ID. Null for Master Application.
+          example: 88099916-6b18-11e9-9b46-1681be663d3f
+    RoutingDetails:
+      type: object
+      properties:
+        open:
+          type: boolean
+          description: True if the call center is open.
+        agents:
+          type: number
+          description: Number of available agents.
+        openingHours:
+          type: string
+          description: A string describing opening hours. It is returned just for
+            debugging, it shouldn't be parsed by the consumer.
+          example: Po-Pa 8:00-20:00
+        error:
+          type: string
+          description: Error message.
+    Intent:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the intent
+        confidence:
+          type: number
+          description: Confidence of the intent
+          example: 0.95
+        entities:
+          type: array
+          description: List of detected entities for this particular intent
+          items:
+            $ref: '#/components/schemas/Entity'
+    Entity:
+      type: object
+      description: Representing entity that has been detected by AI with a given confidence, carrying certain value
+      required:
+        - entity_name
+      properties:
+        entity_name:
+          type: string
+          description: Name of the entity
+        confidence:
+          type: number
+          description: Confidence of the entity
+          example: 0.95
+        value:
+          type: string
+          description: Value carried by an entity
+    ClearCacheResponse:
+      type: object
+      properties:
+        num:
+          type: number
+          description: Number of deleted records
+    ManagedApp:
+      type: object
+    UnverifiedIdentityResponse:
+      required:
+      - email
+      - nickname
+      - phoneNumber
+      - status
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: Identity type
+          example: NID
+        status:
+          type: string
+          description: Status of identity
+          example: ACTIVE
+        phoneNumber:
+          type: string
+          example: "420777111222"
+        nickname:
+          type: string
+          example: '[$]uperuser'
+        email:
+          type: string
+          example: user@server.tld
+    QRCodeUrlResponse:
+      required:
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL of the QR code
+    PennyTransferObject:
+      required:
+      - pennyTransfer
+      type: object
+      properties:
+        pennyTransfer:
+          required:
+          - sender
+          type: object
+          properties:
+            sender:
+              required:
+              - bankCode
+              - number
+              type: object
+              properties:
+                number:
+                  type: string
+                  description: Bank account number
+                bankCode:
+                  type: string
+                  description: Bank code
+    GetPennyTransferDataResponse:
+      type: object
+      properties:
+        amount:
+          type: number
+          description: the amount of the bank transfer
+        accountNumber:
+          type: string
+          description: the bank account number (BBAN) of the recipient
+        variableSymbol:
+          type: string
+          description: variable symbol
+        currency:
+          type: string
+          description: currency code
+        message:
+          type: string
+          description: message for the recipient
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: Authorization
+      in: header
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: Authentication information is missing or invalid
+      headers:
+        WWW_Authenticate:
+          schema:
+            type: string
+security:
+  - api_key: []
+tags:
+  - name: events
+    description: Events
+  - name: send
+    description: Send Events
+  - name: channels
+    description: Channels
+  - name: applications
+    description: Applications
+  - name: onboarding
+    description: Onboarding
+  - name: routing
+    description: Routing
+  - name: identities
+    description: Identities
+  - name: attachments
+    description: Attachments
+externalDocs:
+  description: Find out more about Facebook Messanger protocol
+  url: https://developers.facebook.com/docs/messenger-platform/introduction

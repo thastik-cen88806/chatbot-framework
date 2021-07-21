@@ -1,0 +1,13 @@
+{
+    "app_id": "cc_bot_master",
+    "messaging_type": "RESPONSE",
+    "mid": "e5932cce-0705-4261-9194-3bd482aba287.3WmzFk1UY0vt.Sa408IO.Bc6N94R",
+    "recipient": {
+        "id": "3WmzFk1UY0vt"
+    },
+    "sender": {
+        "id": "e5932cce-0705-4261-9194-3bd482aba287"
+    },
+    "sender_action": "typing_on",
+    "timestamp": 1623446515540
+}

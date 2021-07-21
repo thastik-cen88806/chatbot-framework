@@ -10,7 +10,7 @@ import Foundation
 
 /// Persona
 ///
-public struct Persona: Codable {
+public struct Persona: Codable, Identified, AutoEquatable {    
 
     // MARK: - Types
 
@@ -23,7 +23,7 @@ public struct Persona: Codable {
     // MARK: - Properties
 
     let name: String
-    let profileImg: String
+    let profileImg: URL
 
     // MARK: - Init
 
@@ -34,7 +34,7 @@ public struct Persona: Codable {
     ///   - profileImg: picture url
     ///
     public init(name: String,
-                profileImg: String) {
+                profileImg: URL) {
 
         self.name = name
         self.profileImg = profileImg

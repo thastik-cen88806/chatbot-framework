@@ -7,19 +7,41 @@
 //
 
 import Foundation
+import Tagged
 
-public struct Postback: Codable {
+public struct Postback: Codable, AutoEquatable {
+
+    // MARK: - TypeAliases
+
+    public typealias AppID = Tagged<App, String>
+
+    // MARK: - Types
+
+    enum CodingKeys: String, CodingKey {
+
+        case payload
+        case appId
+    }
 
     // MARK: - Properties
 
     let payload: String
-    var appId: String?
+
+    var appId: AppID?
 
     // MARK: - Init
 
-    public init(payload: String, appId: String?) {
+    /// Postback
+    ///
+    /// - Parameters:
+    ///   - payload: ??
+    ///   - appId: ??
+    ///
+    public init(payload: String,
+                appId: AppID?) {
 
         self.payload = payload
+
         self.appId = appId
     }
 }

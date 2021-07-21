@@ -21,7 +21,7 @@ public struct ClearCacheResponse: Codable {
 
     // MARK: - Properties
 
-    let number: UInt32?
+    let number: Int?
 
     // MARK: - Init
 
@@ -29,7 +29,7 @@ public struct ClearCacheResponse: Codable {
     ///
     /// - Parameter number: Number of deleted records
     ///
-    public init(number: UInt32?) {
+    public init(number: Int?) {
 
         self.number = number
     }
